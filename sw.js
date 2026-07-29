@@ -5,7 +5,7 @@
 
 const CACHE_NAME = 'input-radja-shell-v1';
 const SHELL_FILES = [
-  './input-pegawai.html',
+  './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
