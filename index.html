@@ -27,6 +27,8 @@
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{width:100%;min-height:100vh;min-height:100dvh;background:var(--bg);color:var(--text);
     font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden;
+    overscroll-behavior:none;overscroll-behavior-x:none;overscroll-behavior-y:none;
+    touch-action:pan-y;
     scrollbar-width:none;-ms-overflow-style:none}
   html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   *::-webkit-scrollbar{display:none;width:0;height:0}
@@ -139,6 +141,9 @@
     background:var(--bg2);color:var(--muted);border:none;font-weight:800;cursor:not-allowed;font-family:inherit;
     transition:background .2s,color .2s,box-shadow .2s;text-transform:uppercase
   }
+  .btn-simpan{
+    position:sticky;bottom:calc(10px + var(--safe-bottom));z-index:6;margin-top:auto
+  }
   .btn-tambah.active, .btn-simpan.active{
     background:linear-gradient(135deg,#F59E0B,#FBBF24);color:#1A1A1A;cursor:pointer;box-shadow:0 4px 14px rgba(245,158,11,.35)
   }
@@ -161,7 +166,8 @@
   .si-del{background:none;border:none;color:var(--red);font-size:14px;cursor:pointer;padding:4px 2px 4px 6px;flex-shrink:0}
 
   /* RIWAYAT */
-  .riwayat-card{background:linear-gradient(160deg,var(--primary3),var(--primary));color:#fff;border:none}
+  .riwayat-card{background:linear-gradient(160deg,var(--primary3),var(--primary));color:#fff;border:none;
+    display:flex;flex-direction:column;flex:1;min-height:0}
   .rw-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
   .rw-head-l{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:900;letter-spacing:.03em}
   .rw-head-l i{opacity:.85}
@@ -171,14 +177,15 @@
   .rw-stat{background:rgba(255,255,255,.16);border-radius:13px;padding:10px}
   .rw-stat-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.78);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
   .rw-stat-val{font-size:16px;font-weight:900;line-height:1.1;word-break:break-word}
-  .rw-list{background:rgba(255,255,255,.14);border-radius:13px;padding:4px;max-height:220px;overflow-y:auto}
+  .rw-list{background:rgba(255,255,255,.14);border-radius:13px;padding:4px;flex:1;min-height:180px;overflow-y:auto}
   .rw-item{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px}
   .rw-item + .rw-item{margin-top:2px}
   .rw-item-main{flex:1;min-width:0}
   .rw-item-title{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .rw-item-sub{font-size:10px;color:rgba(255,255,255,.7);margin-top:1px}
   .rw-item-jum{font-size:12px;font-weight:800;white-space:nowrap}
-  .rw-empty{text-align:center;padding:18px;font-size:12px;color:rgba(255,255,255,.7)}
+  .rw-empty{text-align:center;padding:18px;font-size:12px;color:rgba(255,255,255,.7);
+    height:100%;display:flex;align-items:center;justify-content:center}
 
   .id-note{font-size:11px;color:var(--muted);text-align:center;padding:0 10px;line-height:1.5}
   .id-note b{color:var(--text2)}
@@ -261,7 +268,7 @@
   .tab-btn .tab-dot{position:absolute;top:6px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--gold);
     box-shadow:0 0 0 2px var(--card)}
   .tab-panel{display:none;flex-direction:column;gap:10px}
-  .tab-panel.active{display:flex}
+  .tab-panel.active{display:flex;flex:1;min-height:0}
 </style>
 </head>
 <body>
