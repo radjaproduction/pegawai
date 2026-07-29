@@ -2,11 +2,11 @@
   "name": "Input Data — Radja Production",
   "short_name": "Input Radja",
   "description": "Input data kerja harian pegawai Radja Production",
-  "start_url": "./input-pegawai.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F2F5FA",
+  "background_color": "#1A2A8C",
   "theme_color": "#1A2A8C",
   "icons": [
     {
