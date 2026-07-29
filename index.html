@@ -81,7 +81,13 @@
     justify-content:center;color:#fff;font-size:11px;margin-bottom:9px}
   .hdr-stat-val{font-size:19px;font-weight:900;color:#fff;line-height:1.1;letter-spacing:-.01em}
   .hdr-stat-label{font-size:9px;font-weight:800;color:rgba(255,255,255,.78);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
-  .hdr-stat-hint{font-size:8.5px;font-weight:600;color:rgba(255,255,255,.62);margin-top:3px;letter-spacing:.01em}
+  .hdr-stat-hint{font-size:8.5px;font-weight:600;color:rgba(255,255,255,.62);margin-top:3px;letter-spacing:.01em;display:flex;align-items:center;gap:5px}
+  .hdr-stat-hint-icon{display:inline-flex;align-items:center;justify-content:center;font-size:9px;color:#fff;animation:tapPulse 1.4s ease-in-out infinite}
+  @keyframes tapPulse{
+    0%{transform:scale(1) translateY(0);opacity:.6}
+    50%{transform:scale(1.25) translateY(-1px);opacity:1}
+    100%{transform:scale(1) translateY(0);opacity:.6}
+  }
   .hdr-stat-clickable{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s}
   .hdr-stat-clickable:active{transform:scale(.97)}
 
@@ -101,9 +107,9 @@
 
   /* CARD BRAND/FORM PEKERJAAN - kuning gradasi (sama seperti tombol SIMPAN DATA sebelumnya) */
   .card-brand{background:linear-gradient(135deg,#F59E0B,#FBBF24);border:none;box-shadow:0 6px 20px rgba(245,158,11,.3)}
-  .card-brand .card-label{color:rgba(26,26,26,.75)}
+  .card-brand .card-label{color:rgba(255,255,255,.85)}
   .card-brand .harga-hint{color:#1A1A1A}
-  .card-label{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .card-label{font-size:13px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
   .field-group + .field-group{margin-top:13px}
   .field-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
@@ -132,7 +138,12 @@
   .harga-hint.warn{color:#D97706}
   .harga-hint.warn b{color:#D97706}
 
-  .ringkasan-card{transition:background .2s,border-color .2s}
+  .ringkasan-card{transition:background .2s,border-color .2s;position:relative}
+  .ringkasan-cancel-btn{position:absolute;top:12px;right:12px;width:26px;height:26px;border-radius:50%;
+    background:rgba(239,68,68,.12);border:none;display:flex;align-items:center;justify-content:center;
+    color:var(--red);font-size:12px;cursor:pointer;transition:background .15s,transform .1s;flex-shrink:0}
+  .ringkasan-cancel-btn:active{transform:scale(.9);background:rgba(239,68,68,.22)}
+  .ringkasan-card.ready .ringkasan-cancel-btn{background:rgba(239,68,68,.14)}
   .ringkasan-label{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
   .ringkasan-main{font-size:13.5px;font-weight:800;color:var(--muted);line-height:1.35}
   .ringkasan-detail{font-size:12.5px;font-weight:700;color:var(--muted);margin-top:3px}
@@ -325,7 +336,7 @@
         <div class="hdr-stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
         <div class="hdr-stat-val" id="hdrTotalQty">Rp 0</div>
         <div class="hdr-stat-label">Total Pendapatan Kotor</div>
-        <div class="hdr-stat-hint">Klik untuk lihat detail pendapatan &amp; potongan</div>
+        <div class="hdr-stat-hint"><i class="fa-solid fa-hand-pointer hdr-stat-hint-icon"></i>Klik untuk lihat detail pendapatan &amp; potongan</div>
       </div>
     </div>
   </div>
@@ -352,8 +363,8 @@
       <div class="field-group">
         <div id="p_bagianChip" class="bagian-chip empty"><i class="fa-solid fa-layer-group"></i> <span>Bagian belum terpilih</span></div>
       </div>
-      <div id="p_namaLockHint" class="field-group" style="display:none;font-size:10.5px;color:var(--muted);font-weight:600;line-height:1.5;">
-        <i class="fa-solid fa-lock" style="margin-right:4px;color:var(--primary3);"></i>HP ini terdaftar untuk&nbsp;<b id="p_namaLockNama" style="color:var(--text2);"></b>. Salah orang? Hubungi admin.
+      <div id="p_namaLockHint" class="field-group" style="display:none;font-size:10.5px;color:rgba(255,255,255,.85);font-weight:600;line-height:1.5;">
+        <i class="fa-solid fa-lock" style="margin-right:4px;color:#fff;"></i>HP ini terdaftar untuk&nbsp;<b id="p_namaLockNama" style="color:#fff;"></b>. Salah orang? Hubungi admin.
       </div>
     </div>
 
@@ -380,13 +391,20 @@
           <input type="hidden" id="p_qty" value="">
         </div>
       </div>
-      <div class="harga-hint" id="p_hargaHint"></div>
+      <div class="harga-hint show" id="p_hargaHint">Harga satuan: <b>Rp 0</b></div>
     </div>
 
     <div class="card ringkasan-card" id="ringkasanCard">
+      <button class="ringkasan-cancel-btn" onclick="cancelTransaksi()" title="Batalkan"><i class="fa-solid fa-xmark"></i></button>
       <div class="ringkasan-label">Cek dulu sebelum simpan</div>
-      <div class="ringkasan-main" id="ringkasanMain">Lengkapi nama, brand, pekerjaan &amp; qty dulu</div>
-      <div class="ringkasan-detail" id="ringkasanDetail"></div>
+      <div class="ringkasan-main" id="ringkasanMain"></div>
+      <div class="ringkasan-detail" id="ringkasanDetail">
+        <div class="ringkasan-rows">
+          <div class="ringkasan-row"><span>Qty</span><span></span></div>
+          <div class="ringkasan-row"><span>Harga satuan</span><span></span></div>
+          <div class="ringkasan-row total"><span>Total</span><span></span></div>
+        </div>
+      </div>
     </div>
 
     <button class="btn-simpan" id="btnSimpan" onclick="simpanData()">Simpan Data</button>
@@ -696,6 +714,8 @@ window.onGantiBrand = () => {
   const pekerjaanList = [...new Set(MASTER.hargaList.filter(h => h.brand === brand && (!bagian || !h.bagian || h.bagian === bagian) && h.pekerjaan).map(h => h.pekerjaan))].sort();
   resetSelect('p_jenis', pekerjaanList, '-- pekerjaan --', !brand || !pekerjaanList.length);
   _resetQty();
+  $('p_hargaHint').className = 'harga-hint show';
+  $('p_hargaHint').innerHTML = 'Harga satuan: <b>Rp 0</b>';
   _updateBtnSimpan();
 };
 
@@ -716,7 +736,7 @@ window.onGantiJenis = () => {
       hint.className = 'harga-hint show warn'; hint.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Harga belum diset admin untuk pekerjaan ini`;
     }
   } else {
-    hint.className = 'harga-hint';
+    hint.className = 'harga-hint show'; hint.innerHTML = 'Harga satuan: <b>Rp 0</b>';
   }
   _updateBtnSimpan();
 };
@@ -726,6 +746,10 @@ function _resetQty(){
   $('p_qtyDisplay').classList.add('f-placeholder');
   $('p_qtyTrigger').style.opacity = '0.4'; $('p_qtyTrigger').style.pointerEvents = 'none';
 }
+window.cancelTransaksi = () => {
+  onGantiBrand();
+  showToast('Transaksi dibatalkan');
+};
 function _updateBtnSimpan(){
   const nama = $('p_nama').value, brand = $('p_brand').value, jenis = $('p_jenis').value;
   const qty = parseInt($('p_qty').value) || 0;
@@ -743,18 +767,19 @@ function _updateRingkasan(ok, brand, jenis, qty, harga){
   const main = $('ringkasanMain');
   const detail = $('ringkasanDetail');
   card.classList.toggle('ready', !!ok);
-  if (ok) {
-    main.textContent = brand + ' — ' + jenis;
-    detail.innerHTML =
-      '<div class="ringkasan-rows">' +
-        '<div class="ringkasan-row"><span>Qty</span><span>' + qty + '</span></div>' +
-        '<div class="ringkasan-row"><span>Harga satuan</span><span>Rp ' + fmt(harga) + '</span></div>' +
-        '<div class="ringkasan-row total"><span>Total</span><span>Rp ' + fmt(harga*qty) + '</span></div>' +
-      '</div>';
-  } else {
-    main.textContent = 'Lengkapi nama, brand, pekerjaan & qty dulu';
-    detail.textContent = '';
-  }
+
+  main.textContent = brand && jenis ? (brand + ' — ' + jenis) : (brand || jenis || '');
+
+  const qtyVal = qty > 0 ? qty : '';
+  const hargaVal = harga > 0 ? ('Rp ' + fmt(harga)) : '';
+  const totalVal = (qty > 0 && harga > 0) ? ('Rp ' + fmt(harga*qty)) : '';
+
+  detail.innerHTML =
+    '<div class="ringkasan-rows">' +
+      '<div class="ringkasan-row"><span>Qty</span><span>' + qtyVal + '</span></div>' +
+      '<div class="ringkasan-row"><span>Harga satuan</span><span>' + hargaVal + '</span></div>' +
+      '<div class="ringkasan-row total"><span>Total</span><span>' + totalVal + '</span></div>' +
+    '</div>';
 }
 
 // ===== NUMPAD QTY =====
