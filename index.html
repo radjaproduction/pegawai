@@ -879,7 +879,6 @@ window.bukaDetailPendapatan = async () => {
 
   const existing = $('detailPendapatanOverlay');
   if (existing) existing.remove();
-  showLoading('MEMUAT DETAIL...');
 
   try {
     // 1) Pekerjaan periode berjalan
@@ -916,8 +915,6 @@ window.bukaDetailPendapatan = async () => {
       .select('id, data')
       .eq('data->>nama', nama);
     if (e5) throw e5;
-
-    hideLoading();
 
     // ----- Olah data Pekerjaan -----
     const _mergedPekerjaan = {};
@@ -1058,7 +1055,6 @@ window.bukaDetailPendapatan = async () => {
     `;
     document.body.appendChild(overlay);
   } catch (e) {
-    hideLoading();
     showToast('❌ Gagal memuat detail: ' + e.message);
   }
 };
