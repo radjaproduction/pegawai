@@ -26,7 +26,11 @@
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{width:100%;min-height:100vh;min-height:100dvh;background:var(--bg);color:var(--text);
-    font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden}
+    font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden;
+    scrollbar-width:none;-ms-overflow-style:none}
+  html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
+  *::-webkit-scrollbar{display:none;width:0;height:0}
+  *{scrollbar-width:none;-ms-overflow-style:none}
 
   /* LOADING */
   .loading-overlay{position:fixed;inset:0;background:rgba(242,245,250,.97);display:none;
@@ -75,6 +79,9 @@
     justify-content:center;color:#fff;font-size:11px;margin-bottom:9px}
   .hdr-stat-val{font-size:19px;font-weight:900;color:#fff;line-height:1.1;letter-spacing:-.01em}
   .hdr-stat-label{font-size:9px;font-weight:800;color:rgba(255,255,255,.78);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+  .hdr-stat-hint{font-size:8.5px;font-weight:600;color:rgba(255,255,255,.62);margin-top:3px;letter-spacing:.01em}
+  .hdr-stat-clickable{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s}
+  .hdr-stat-clickable:active{transform:scale(.97)}
 
   .app-body{flex:1;padding:14px 10px calc(24px + var(--safe-bottom));display:flex;flex-direction:column;gap:10px}
 
@@ -108,6 +115,18 @@
   .harga-hint b{color:var(--primary3)}
   .harga-hint.warn{color:#D97706}
   .harga-hint.warn b{color:#D97706}
+
+  .ringkasan-card{transition:background .2s,border-color .2s}
+  .ringkasan-label{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .ringkasan-main{font-size:13.5px;font-weight:800;color:var(--muted);line-height:1.35}
+  .ringkasan-detail{font-size:12.5px;font-weight:700;color:var(--muted);margin-top:3px}
+  .ringkasan-card.ready{background:var(--primaryDim);border-color:var(--primary)}
+  .ringkasan-card.ready .ringkasan-label{color:var(--primary3)}
+  .ringkasan-card.ready .ringkasan-main{color:var(--text);font-size:15px}
+  .ringkasan-card.ready .ringkasan-detail{color:var(--primary3);font-size:14.5px}
+  .ringkasan-warn{display:flex;align-items:flex-start;gap:7px;margin-top:10px;padding-top:10px;
+    border-top:1px dashed var(--border);font-size:11px;font-weight:700;color:#B45309;line-height:1.5}
+  .ringkasan-warn i{margin-top:2px;flex-shrink:0}
 
   .btn-tambah, .btn-simpan{
     width:100%;padding:16px;font-size:14.5px;border-radius:14px;letter-spacing:.06em;
@@ -177,6 +196,46 @@
   .numpad-cancel{background:var(--bg2);color:var(--muted)}
   .numpad-confirm{background:linear-gradient(135deg,var(--primary3),var(--primary));color:#fff}
 
+  /* DETAIL PENDAPATAN POPUP */
+  .dp-sheet{max-height:86vh;overflow-y:auto}
+  .dp-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .dp-avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--primary3),var(--primary));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:800;flex-shrink:0;letter-spacing:-.02em}
+  .dp-avatar.pinjaman{background:linear-gradient(135deg,#DC2626,#EF4444)}
+  .dp-head-info{flex:1;min-width:0}
+  .dp-name{font-size:15px;font-weight:800;color:var(--text);line-height:1.2}
+  .dp-periode{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+  .dp-close{background:var(--bg2);border:none;color:var(--muted);width:32px;height:32px;border-radius:10px;font-size:13px;cursor:pointer;flex-shrink:0}
+
+  .dp-summary{display:flex;align-items:center;background:var(--card2);border-radius:16px;padding:14px 6px;margin-bottom:14px}
+  .dp-summary-item{flex:1;text-align:center;padding:0 6px;border-right:1px solid var(--border)}
+  .dp-summary-item:last-child{border-right:none}
+  .dp-summary-label{font-size:8.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;white-space:nowrap}
+  .dp-summary-val{font-size:13px;font-weight:800;color:var(--text2);line-height:1.15;word-break:break-word}
+  .dp-summary-val.green{color:var(--green);font-size:15px;font-weight:900}
+  .dp-summary-val.red{color:var(--red)}
+
+  .dp-section{background:var(--bg2);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+  .dp-section.tambahan{background:rgba(16,185,129,.08)}
+  .dp-section.potongan{background:rgba(239,68,68,.08)}
+  .dp-section-title{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .dp-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--text);padding:4px 0}
+  .dp-row small{font-size:10px;font-weight:500;color:var(--muted)}
+  .dp-row.total{border-top:1px solid var(--border);margin-top:4px;padding-top:6px;font-weight:800}
+  .dp-row .positive{color:var(--green)}
+  .dp-row .negative{color:var(--red)}
+
+  .dp-pinjaman{display:flex;justify-content:space-between;align-items:center;background:var(--bg2);border-radius:14px;
+    padding:12px 14px;margin-top:2px;margin-bottom:14px}
+  .dp-pinjaman-label{font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .dp-pinjaman-val{font-size:14px;font-weight:800;color:var(--text)}
+  .dp-pinjaman-val.negative{color:var(--red)}
+  .dp-pinjaman-val.positive{color:var(--green)}
+
+  .dp-empty{text-align:center;color:var(--muted);font-size:12.5px;padding:20px 0}
+  .dp-close-btn{width:100%;background:var(--bg2);color:var(--muted);border:none;border-radius:14px;padding:14px;
+    font-size:13.5px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:4px}
+
   .switch-pegawai{text-align:center;margin-top:2px}
   .switch-pegawai button{background:none;border:none;color:var(--primary3);font-size:11.5px;font-weight:700;
     font-family:inherit;cursor:pointer;padding:4px}
@@ -235,10 +294,11 @@
         <div class="hdr-stat-val" id="hdrTotalItem">0</div>
         <div class="hdr-stat-label">Total Item</div>
       </div>
-      <div class="hdr-stat hdr-stat-b">
+      <div class="hdr-stat hdr-stat-b hdr-stat-clickable" id="hdrStatKotor" onclick="bukaDetailPendapatan()">
         <div class="hdr-stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
         <div class="hdr-stat-val" id="hdrTotalQty">Rp 0</div>
-        <div class="hdr-stat-label">Total Pendapatan</div>
+        <div class="hdr-stat-label">Total Pendapatan Kotor</div>
+        <div class="hdr-stat-hint">Klik untuk lihat detail pendapatan &amp; potongan</div>
       </div>
     </div>
   </div>
@@ -266,7 +326,7 @@
         <div id="p_bagianChip" class="bagian-chip empty"><i class="fa-solid fa-layer-group"></i> <span>Bagian belum terpilih</span></div>
       </div>
       <div id="p_namaLockHint" class="field-group" style="display:none;font-size:10.5px;color:var(--muted);font-weight:600;line-height:1.5;">
-        <i class="fa-solid fa-lock" style="margin-right:4px;color:var(--primary3);"></i>Nama terkunci untuk HP ini. Kalau ini bukan HP kamu atau mau ganti nama, hubungi admin.
+        <i class="fa-solid fa-lock" style="margin-right:4px;color:var(--primary3);"></i>HP ini terdaftar untuk <b id="p_namaLockNama" style="color:var(--text2);"></b>. Salah orang? Hubungi admin.
       </div>
     </div>
 
@@ -296,9 +356,14 @@
       <div class="harga-hint" id="p_hargaHint"></div>
     </div>
 
-    <button class="btn-simpan" id="btnSimpan" onclick="simpanData()">Simpan Data</button>
+    <div class="card ringkasan-card" id="ringkasanCard">
+      <div class="ringkasan-label">Cek dulu sebelum simpan</div>
+      <div class="ringkasan-main" id="ringkasanMain">Lengkapi nama, brand, pekerjaan &amp; qty dulu</div>
+      <div class="ringkasan-detail" id="ringkasanDetail"></div>
+      <div class="ringkasan-warn"><i class="fa-solid fa-triangle-exclamation"></i> Data yang sudah disimpan tidak bisa diubah sendiri — hubungi admin bila salah input.</div>
+    </div>
 
-    <div class="id-note">Pastikan <b>nama</b> dan <b>qty</b> sudah benar sebelum menyimpan. Data yang sudah disimpan tidak bisa diubah sendiri — hubungi admin bila salah input.</div>
+    <button class="btn-simpan" id="btnSimpan" onclick="simpanData()">Simpan Data</button>
 
     </div>
     <!-- /TAB 1 -->
@@ -359,7 +424,7 @@ const SUPABASE_URL = "https://tnhfxiglwnkvchozwjzf.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRuaGZ4aWdsd25rdmNob3p3anpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ0NTY3NTIsImV4cCI6MjEwMDAzMjc1Mn0.Tmrrfs1WHcb7xFMUs6O9ScWuMfS8XPDnTxfKh4TH_L0";
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const COL = { master: 'payroll_master', harga: 'payroll_harga', input: 'payroll_input' };
+const COL = { master: 'payroll_master', harga: 'payroll_harga', input: 'payroll_input', pinjaman: 'payroll_pinjaman', bayar: 'payroll_bayar', tambahan: 'tambahan' };
 const LS_KEY = 'radja_input_last_nama';
 // Menandai nama yang GAGAL tersimpan sebagai kunci resmi ke server (mis.
 // karena offline saat itu) -> perlu di-retry saat app dibuka lagi. Dipisah
@@ -443,11 +508,13 @@ let _initTimeout;
 let _deviceLockSyncing = false;
 
 // Tampilkan/matikan status terkunci di dropdown Nama Pegawai.
-function _setNamaLockUI(locked){
+function _setNamaLockUI(locked, nama){
   const sel = $('p_nama');
   const hint = $('p_namaLockHint');
   if (sel) sel.disabled = !!locked;
   if (hint) hint.style.display = locked ? 'flex' : 'none';
+  const namaEl = $('p_namaLockNama');
+  if (namaEl) namaEl.textContent = locked ? (nama || $('p_nama').value || '') : '';
 }
 
 // Daftarkan nama ini sebagai kunci resmi perangkat ini ke server (Supabase),
@@ -593,7 +660,7 @@ window.onGantiNama = (fromUser = true) => {
   // app Payroll (admin) > Setting.
   if (fromUser && nama && !MASTER.deviceLockNama) {
     _ensureDeviceLockSynced(nama);
-    _setNamaLockUI(true);
+    _setNamaLockUI(true, nama);
   }
 };
 
@@ -616,6 +683,9 @@ window.onGantiJenis = () => {
     if (harga) {
       $('p_qtyTrigger').style.opacity = '1'; $('p_qtyTrigger').style.pointerEvents = 'auto';
       hint.className = 'harga-hint show'; hint.innerHTML = `Harga satuan: <b>Rp ${fmt(harga)}</b>`;
+      // Buka numpad otomatis -- pegawai langsung bisa isi qty tanpa tap kolom qty lagi.
+      // Delay kecil supaya dropdown native pekerjaan sempat menutup dulu di HP.
+      setTimeout(bukaNumpad, 150);
     } else {
       hint.className = 'harga-hint show warn'; hint.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Harga belum diset admin untuk pekerjaan ini`;
     }
@@ -636,6 +706,24 @@ function _updateBtnSimpan(){
   const harga = MASTER.harga[brand+'|'+jenis] || 0;
   const ok = nama && brand && jenis && qty > 0 && harga > 0;
   $('btnSimpan').classList.toggle('active', !!ok);
+  _updateRingkasan(ok, brand, jenis, qty, harga);
+}
+
+// Ringkasan konfirmasi di atas tombol Simpan -- supaya pegawai bisa cek dulu
+// brand/pekerjaan/qty/total sebelum data benar-benar masuk ke database
+// (data tidak bisa diubah sendiri kalau sudah tersimpan).
+function _updateRingkasan(ok, brand, jenis, qty, harga){
+  const card = $('ringkasanCard');
+  const main = $('ringkasanMain');
+  const detail = $('ringkasanDetail');
+  card.classList.toggle('ready', !!ok);
+  if (ok) {
+    main.textContent = brand + ' — ' + jenis;
+    detail.textContent = qty + 'x · Rp ' + fmt(harga*qty);
+  } else {
+    main.textContent = 'Lengkapi nama, brand, pekerjaan & qty dulu';
+    detail.textContent = '';
+  }
 }
 
 // ===== NUMPAD QTY =====
@@ -755,6 +843,223 @@ window.muatRiwayat = async (manual) => {
     rwList.innerHTML = '<div class="rw-empty">Gagal memuat riwayat: ' + e.message + '</div>';
   } finally {
     if (manual) btn.classList.remove('spin');
+  }
+};
+
+// ===== DETAIL PENDAPATAN (POPUP, PERIODE MINGGUAN: SENIN s/d HARI INI) =====
+function _getMondayISO(d){
+  const dt = new Date(d);
+  const day = dt.getDay() || 7; // Minggu(0) dianggap 7
+  dt.setDate(dt.getDate() - day + 1);
+  dt.setHours(0,0,0,0);
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+}
+function _tglLabelDDMMYYYY(iso){
+  if (!iso) return '-';
+  const p = iso.split('-');
+  return p.length===3 ? (p[2]+'/'+p[1]+'/'+p[0]) : iso;
+}
+function _nilaiItemTambahanDP(item){
+  if (!item) return 0;
+  if (Number(item.jumlah) > 0) return Number(item.jumlah);
+  return Number(item.qty||0) * Number(item.harga||0);
+}
+
+window.tutupDetailPendapatan = () => {
+  const el = $('detailPendapatanOverlay');
+  if (el) el.remove();
+};
+
+window.bukaDetailPendapatan = async () => {
+  const nama = $('p_nama').value;
+  if (!nama) { showToast('⚠ Pilih nama pegawai dulu!'); return; }
+
+  const dari = _getMondayISO(new Date());
+  const sampai = todayISO();
+
+  const existing = $('detailPendapatanOverlay');
+  if (existing) existing.remove();
+  showLoading('MEMUAT DETAIL...');
+
+  try {
+    // 1) Pekerjaan periode berjalan
+    const { data: inputRows, error: e1 } = await sb.from(COL.input)
+      .select('id, data')
+      .eq('data->>nama', nama)
+      .gte('data->>tanggalISO', dari)
+      .lte('data->>tanggalISO', sampai);
+    if (e1) throw e1;
+    const pekerjaanItems = (inputRows||[]).map(r => r.data);
+
+    // 2) Tambahan (lembur/uang makan/bonus dkk) periode berjalan
+    const { data: tamRows, error: e2 } = await sb.from(COL.tambahan)
+      .select('id, data')
+      .eq('data->>nama', nama)
+      .gte('data->>tanggalISO', dari)
+      .lte('data->>tanggalISO', sampai);
+    if (e2) throw e2;
+
+    // 3) Potongan (bayar cicilan pinjaman) periode berjalan, exclude luarGaji
+    const { data: bayarRowsPeriode, error: e3 } = await sb.from(COL.bayar)
+      .select('id, data')
+      .eq('data->>nama', nama)
+      .gte('data->>tanggalISO', dari)
+      .lte('data->>tanggalISO', sampai);
+    if (e3) throw e3;
+
+    // 4) Pinjaman sisa: total pinjaman - total bayar, sepanjang waktu (bukan per periode)
+    const { data: pinjamanRowsAll, error: e4 } = await sb.from(COL.pinjaman)
+      .select('id, data')
+      .eq('data->>nama', nama);
+    if (e4) throw e4;
+    const { data: bayarRowsAll, error: e5 } = await sb.from(COL.bayar)
+      .select('id, data')
+      .eq('data->>nama', nama);
+    if (e5) throw e5;
+
+    hideLoading();
+
+    // ----- Olah data Pekerjaan -----
+    const _mergedPekerjaan = {};
+    let subtotalPekerjaan = 0;
+    pekerjaanItems.forEach(it => {
+      const key = (it.jenis||'-') + '||' + (it.harga||0);
+      if (!_mergedPekerjaan[key]) _mergedPekerjaan[key] = { jenis:it.jenis, harga:it.harga, qty:0, jumlah:0 };
+      _mergedPekerjaan[key].qty += (it.qty||0);
+      _mergedPekerjaan[key].jumlah += (it.jumlah||0);
+      subtotalPekerjaan += (it.jumlah||0);
+    });
+    const pekerjaanRowsHtml = Object.values(_mergedPekerjaan)
+      .sort((a,b) => String(a.jenis||'').localeCompare(String(b.jenis||''),'id'))
+      .map(it => `<div class="dp-row"><span>${it.jenis||'-'} <small>(${it.qty||0} x Rp${fmt(it.harga)})</small></span><span>Rp ${fmt(it.jumlah)}</span></div>`)
+      .join('');
+
+    // ----- Olah data Tambahan -----
+    const mergedTambahan = {};
+    let tamTotal = 0;
+    (tamRows||[]).forEach(r => {
+      const data = r.data || {};
+      let items = {};
+      try { items = data.itemsJSON ? JSON.parse(data.itemsJSON) : {}; } catch(e) { items = {}; }
+      if (!Object.keys(items).length) {
+        const legacy = [
+          ['UANG MAKAN', data.hariMakan, data.jumlahMakan],
+          ['UANG MAKAN MINGGU', data.hariMakanMinggu, data.jumlahMakanMinggu],
+          ['LEMBUR', data.hariLembur, data.jumlahLembur],
+          ['BONUS', data.hariBonus, data.jumlahBonus]
+        ];
+        legacy.forEach(([jenis, qty, jumlah]) => {
+          if (Number(qty||0) > 0 || Number(jumlah||0) > 0) {
+            const harga = qty ? Number(jumlah||0)/Number(qty) : 0;
+            items['|'+jenis] = { jenis, qty:Number(qty||0), harga, jumlah:Number(jumlah||0) };
+          }
+        });
+      }
+      Object.entries(items).forEach(([key, item]) => {
+        const jumlah = _nilaiItemTambahanDP(item);
+        if (jumlah <= 0) return;
+        if (!mergedTambahan[key]) mergedTambahan[key] = { ...item, qty:0, jumlah:0 };
+        mergedTambahan[key].qty += Number(item.qty||0);
+        mergedTambahan[key].jumlah += jumlah;
+      });
+      const calculated = Object.values(items).reduce((s,it) => s + _nilaiItemTambahanDP(it), 0);
+      tamTotal += Number(data.total) > 0 ? Number(data.total) : calculated;
+    });
+    const tambahanRowsHtml = Object.values(mergedTambahan)
+      .filter(it => (it.jumlah>0) || (it.qty>0 && it.harga>0))
+      .map(it => {
+        const jumlahTampil = it.jumlah>0 ? it.jumlah : (it.qty||0)*(it.harga||0);
+        return `<div class="dp-row"><span>${it.jenis} <small>(${it.qty} ${(it.satuan||'HARI').toLowerCase()})</small></span><span class="positive">+Rp ${fmt(jumlahTampil)}</span></div>`;
+      }).join('');
+
+    // ----- Olah data Potongan (periode berjalan, exclude luarGaji) -----
+    const potMap = {};
+    let totalPotongan = 0;
+    (bayarRowsPeriode||[]).forEach(r => {
+      const b = r.data || {};
+      if (b.luarGaji) return;
+      const jenis = b.jenisPinjaman || 'Pinjaman';
+      potMap[jenis] = (potMap[jenis]||0) + (b.bayar||0);
+      totalPotongan += (b.bayar||0);
+    });
+    const potonganRowsHtml = Object.entries(potMap)
+      .map(([jenis, jumlah]) => `<div class="dp-row"><span>${jenis}</span><span class="negative">-Rp ${fmt(jumlah)}</span></div>`)
+      .join('');
+
+    // ----- Pinjaman sisa (lifetime) -----
+    const totalPinjaman = (pinjamanRowsAll||[]).reduce((s,r) => s + ((r.data||{}).nominal||0), 0);
+    const totalBayarSemua = (bayarRowsAll||[]).reduce((s,r) => s + ((r.data||{}).bayar||0), 0);
+    const sisaPinjaman = totalPinjaman - totalBayarSemua;
+    const adaPinjaman = sisaPinjaman > 0;
+
+    const kotor = subtotalPekerjaan + tamTotal;
+    const bersih = kotor - totalPotongan;
+
+    const bagian = (MASTER.pegawaiData[nama]||{}).bagian || '-';
+    const initials = nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'detailPendapatanOverlay';
+    overlay.className = 'popup active';
+    overlay.innerHTML = `
+      <div class="popup-sheet dp-sheet">
+        <div class="dp-head">
+          <div class="dp-avatar ${adaPinjaman?'pinjaman':''}">${initials}</div>
+          <div class="dp-head-info">
+            <div class="dp-name">${nama}</div>
+            <div class="dp-periode">${bagian} · Periode ${_tglLabelDDMMYYYY(dari)} — ${_tglLabelDDMMYYYY(sampai)}</div>
+          </div>
+          <button class="dp-close" onclick="tutupDetailPendapatan()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="dp-summary">
+          <div class="dp-summary-item">
+            <div class="dp-summary-label">Kotor</div>
+            <div class="dp-summary-val">Rp ${fmt(kotor)}</div>
+          </div>
+          <div class="dp-summary-item">
+            <div class="dp-summary-label">Potongan</div>
+            <div class="dp-summary-val red">${totalPotongan>0 ? '-Rp '+fmt(totalPotongan) : '-'}</div>
+          </div>
+          <div class="dp-summary-item">
+            <div class="dp-summary-label">Diterima</div>
+            <div class="dp-summary-val green">Rp ${fmt(bersih)}</div>
+          </div>
+        </div>
+
+        ${pekerjaanRowsHtml ? `
+        <div class="dp-section">
+          <div class="dp-section-title">Pekerjaan</div>
+          ${pekerjaanRowsHtml}
+          <div class="dp-row total"><span>Subtotal</span><span>Rp ${fmt(subtotalPekerjaan)}</span></div>
+        </div>` : `<div class="dp-empty">Belum ada data pekerjaan periode ini</div>`}
+
+        ${tambahanRowsHtml ? `
+        <div class="dp-section tambahan">
+          <div class="dp-section-title">Tambahan</div>
+          ${tambahanRowsHtml}
+          <div class="dp-row total"><span>Total</span><span class="positive">+Rp ${fmt(tamTotal)}</span></div>
+        </div>` : ''}
+
+        ${potonganRowsHtml ? `
+        <div class="dp-section potongan">
+          <div class="dp-section-title">Potongan</div>
+          ${potonganRowsHtml}
+          <div class="dp-row total"><span>Total</span><span class="negative">-Rp ${fmt(totalPotongan)}</span></div>
+        </div>` : ''}
+
+        <div class="dp-pinjaman">
+          <div class="dp-pinjaman-label">Pinjaman Sisa</div>
+          <div class="dp-pinjaman-val ${adaPinjaman?'negative':'positive'}">${adaPinjaman ? 'Rp '+fmt(sisaPinjaman) : '✓ Lunas'}</div>
+        </div>
+
+        <button class="dp-close-btn" onclick="tutupDetailPendapatan()">Tutup</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  } catch (e) {
+    hideLoading();
+    showToast('❌ Gagal memuat detail: ' + e.message);
   }
 };
 
