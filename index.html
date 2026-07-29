@@ -296,17 +296,6 @@
       <div class="harga-hint" id="p_hargaHint"></div>
     </div>
 
-    <button class="btn-tambah" id="btnTambah" onclick="tambahKeStaging()">+ Tambah Item</button>
-
-    <!-- STAGING -->
-    <div class="card staging-card">
-      <div class="staging-head">
-        <div class="staging-head-l"><i class="fa-solid fa-list-check"></i> DAFTAR ITEM <span class="staging-count" id="stagingCount">0</span></div>
-        <div class="staging-total" id="stagingTotal">Rp 0</div>
-      </div>
-      <div id="stagingList"><div class="staging-empty">Belum ada item ditambahkan</div></div>
-    </div>
-
     <button class="btn-simpan" id="btnSimpan" onclick="simpanData()">Simpan Data</button>
 
     <div class="id-note">Pastikan <b>nama</b> dan <b>qty</b> sudah benar sebelum menyimpan. Data yang sudah disimpan tidak bisa diubah sendiri — hubungi admin bila salah input.</div>
@@ -449,7 +438,6 @@ async function sbGetAllRows(table){
 
 // ===== STATE =====
 let MASTER = { pegawai:[], pegawaiData:{}, hargaList:[], harga:{}, deviceLockNama:'', deviceLockId:'' };
-let _stagingList = [];
 let _initFlags = { master:false, harga:false };
 let _initTimeout;
 let _deviceLockSyncing = false;
@@ -597,7 +585,7 @@ window.onGantiNama = (fromUser = true) => {
   resetSelect('p_brand', brandsForBagian, '-- pilih brand --', !nama || !brandsForBagian.length);
   resetSelect('p_jenis', [], '-- pekerjaan --', true);
   _resetQty();
-  _updateBtnTambah();
+  _updateBtnSimpan();
   muatRiwayat();
 
   // Kunci nama ini ke perangkat ini kalau belum ada kunci resmi tersimpan
@@ -615,7 +603,7 @@ window.onGantiBrand = () => {
   const pekerjaanList = [...new Set(MASTER.hargaList.filter(h => h.brand === brand && (!bagian || !h.bagian || h.bagian === bagian) && h.pekerjaan).map(h => h.pekerjaan))].sort();
   resetSelect('p_jenis', pekerjaanList, '-- pekerjaan --', !brand || !pekerjaanList.length);
   _resetQty();
-  _updateBtnTambah();
+  _updateBtnSimpan();
 };
 
 window.onGantiJenis = () => {
@@ -634,7 +622,7 @@ window.onGantiJenis = () => {
   } else {
     hint.className = 'harga-hint';
   }
-  _updateBtnTambah();
+  _updateBtnSimpan();
 };
 
 function _resetQty(){
@@ -642,12 +630,12 @@ function _resetQty(){
   $('p_qtyDisplay').classList.add('f-placeholder');
   $('p_qtyTrigger').style.opacity = '0.4'; $('p_qtyTrigger').style.pointerEvents = 'none';
 }
-function _updateBtnTambah(){
+function _updateBtnSimpan(){
   const nama = $('p_nama').value, brand = $('p_brand').value, jenis = $('p_jenis').value;
   const qty = parseInt($('p_qty').value) || 0;
   const harga = MASTER.harga[brand+'|'+jenis] || 0;
   const ok = nama && brand && jenis && qty > 0 && harga > 0;
-  $('btnTambah').classList.toggle('active', !!ok);
+  $('btnSimpan').classList.toggle('active', !!ok);
 }
 
 // ===== NUMPAD QTY =====
@@ -672,42 +660,8 @@ window.numpadConfirm = () => {
   $('p_qtyDisplay').classList.toggle('f-placeholder', !(val>0));
   if (val < 1) showToast('⚠ Qty minimal 1!');
   tutupNumpad();
-  _updateBtnTambah();
+  _updateBtnSimpan();
 };
-
-// ===== STAGING =====
-function _renderStaging(){
-  const list = $('stagingList');
-  const countEl = $('stagingCount');
-  const totalEl = $('stagingTotal');
-  if (_stagingList.length === 0) {
-    list.innerHTML = '<div class="staging-empty">Belum ada item ditambahkan</div>';
-    countEl.textContent = '0';
-    totalEl.textContent = 'Rp 0';
-    $('btnSimpan').classList.remove('active');
-    $('hdrTotalItem').textContent = '0';
-    $('hdrTotalQty').textContent = 'Rp 0';
-    return;
-  }
-  countEl.textContent = _stagingList.length;
-  const grandTotal = _stagingList.reduce((s,i)=>s+i.jumlah,0);
-  totalEl.textContent = 'Rp ' + fmt(grandTotal);
-  $('hdrTotalItem').textContent = _stagingList.length;
-  $('hdrTotalQty').textContent = 'Rp ' + fmt(grandTotal);
-  list.innerHTML = _stagingList.map((item, idx) => `
-    <div class="staging-item">
-      <div class="si-main">
-        <div class="si-brand">${item.brand}</div>
-        <div class="si-jenis">${item.jenis}</div>
-      </div>
-      <div class="si-qty">${item.qty}x</div>
-      <div class="si-jumlah">Rp ${fmt(item.jumlah)}</div>
-      <button class="si-del" onclick="hapusStaging(${idx})"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-  `).join('');
-  $('btnSimpan').classList.add('active');
-}
-window.hapusStaging = (idx) => { _stagingList.splice(idx,1); _renderStaging(); };
 
 // ===== TAB SWITCH =====
 let _activeTab = 1;
@@ -720,7 +674,8 @@ window.switchTab = (n) => {
   if (n === 2) muatRiwayat();
 };
 
-window.tambahKeStaging = () => {
+// ===== SIMPAN LANGSUNG (tanpa staging) =====
+window.simpanData = async () => {
   const nama = $('p_nama').value;
   const bagian = (MASTER.pegawaiData[nama]||{}).bagian || '';
   const brand = $('p_brand').value;
@@ -729,46 +684,28 @@ window.tambahKeStaging = () => {
   if (!nama || !brand || !jenis || qty < 1) { showToast('⚠ Lengkapi semua field dulu!'); return; }
   const harga = MASTER.harga[brand+'|'+jenis] || 0;
   if (!harga) { showToast('⚠ Harga belum diset admin!'); return; }
-  _stagingList.push({ nama, bagian, jenis, brand, qty, harga, jumlah: harga*qty });
-  _renderStaging();
-  // brand & bagian tetap, pekerjaan+qty direset supaya cepat input item berikutnya
-  const brandsForBagian = [...new Set(MASTER.hargaList.filter(h => (!bagian || !h.bagian || h.bagian === bagian) && h.brand).map(h=>h.brand))].sort();
-  resetSelect('p_brand', brandsForBagian, '-- pilih brand --', false);
-  $('p_brand').value = brand;
-  onGantiBrand();
-  showToast('✅ Item ditambahkan!');
-};
+  const jumlah = harga*qty;
 
-window.simpanData = async () => {
-  if (_stagingList.length === 0) { showToast('⚠ Belum ada item untuk disimpan!'); return; }
   const btn = $('btnSimpan');
   const label = btn.textContent;
   btn.textContent = 'Menyimpan...'; btn.classList.remove('active'); btn.style.pointerEvents = 'none';
   showLoading('MENYIMPAN DATA...');
-  const totalAwal = _stagingList.length;
   try {
     const tanggalISO = todayISO();
     const tanggal = String(new Date().getDate()).padStart(2,'0') + '/' + String(new Date().getMonth()+1).padStart(2,'0') + '/' + new Date().getFullYear();
-    while (_stagingList.length) {
-      const item = _stagingList[0];
-      await sbInsertRow(COL.input, { tanggal, tanggalISO, nama:item.nama, bagian:item.bagian, jenis:item.jenis, brand:item.brand, qty:item.qty, harga:item.harga, jumlah:item.jumlah, waktu:new Date().toISOString() });
-      _stagingList.shift();
-      _renderStaging();
-    }
-    showToast('✅ ' + totalAwal + ' data berhasil disimpan!');
+    await sbInsertRow(COL.input, { tanggal, tanggalISO, nama, bagian, jenis, brand, qty, harga, jumlah, waktu:new Date().toISOString() });
+    showToast('✅ Data berhasil disimpan!');
     btn.textContent = label;
-    // form pekerjaan direset, nama pegawai TETAP tersimpan (device dipakai pegawai yang sama tiap hari)
-    resetSelect('p_brand', [], '-- pilih brand --', true);
-    resetSelect('p_jenis', [], '-- pekerjaan --', true);
-    _resetQty();
-    $('p_hargaHint').className = 'harga-hint';
-    onGantiNama();
+    // brand & bagian tetap, pekerjaan+qty direset supaya cepat input item berikutnya
+    const brandsForBagian = [...new Set(MASTER.hargaList.filter(h => (!bagian || !h.bagian || h.bagian === bagian) && h.brand).map(h=>h.brand))].sort();
+    resetSelect('p_brand', brandsForBagian, '-- pilih brand --', false);
+    $('p_brand').value = brand;
+    onGantiBrand();
     muatRiwayat(true);
   } catch (e) {
-    const sisaGagal = _stagingList.length;
-    const sudahMasuk = totalAwal - sisaGagal;
-    showToast('❌ Gagal simpan: ' + e.message + (sudahMasuk>0 ? ' ('+sudahMasuk+' dari '+totalAwal+' sudah tersimpan)' : ''));
+    showToast('❌ Gagal simpan: ' + e.message);
     btn.textContent = label;
+    _updateBtnSimpan();
   } finally {
     btn.style.pointerEvents = '';
     hideLoading();
@@ -782,6 +719,8 @@ window.muatRiwayat = async (manual) => {
   if (!nama) {
     $('rwEntri').textContent = '—'; $('rwTotal').textContent = '—';
     rwList.innerHTML = '<div class="rw-empty">Pilih nama untuk melihat riwayat</div>';
+    $('hdrTotalItem').textContent = '0';
+    $('hdrTotalQty').textContent = 'Rp 0';
     return;
   }
   const btn = $('rwRefreshBtn');
@@ -793,8 +732,11 @@ window.muatRiwayat = async (manual) => {
       .eq('data->>nama', nama);
     if (error) throw error;
     const items = (rows||[]).map(r => r.data).sort((a,b) => String(b.waktu||'').localeCompare(String(a.waktu||'')));
+    const totalHariIni = items.reduce((s,i)=>s+(i.jumlah||0),0);
     $('rwEntri').textContent = items.length;
-    $('rwTotal').textContent = 'Rp ' + fmt(items.reduce((s,i)=>s+(i.jumlah||0),0));
+    $('rwTotal').textContent = 'Rp ' + fmt(totalHariIni);
+    $('hdrTotalItem').textContent = items.length;
+    $('hdrTotalQty').textContent = 'Rp ' + fmt(totalHariIni);
     if (items.length === 0) {
       rwList.innerHTML = '<div class="rw-empty">Belum ada data tersimpan hari ini</div>';
     } else {
@@ -815,11 +757,6 @@ window.muatRiwayat = async (manual) => {
     if (manual) btn.classList.remove('spin');
   }
 };
-
-// Peringatkan kalau ada item belum tersimpan saat menutup/refresh halaman
-window.addEventListener('beforeunload', (e) => {
-  if (_stagingList.length > 0) { e.preventDefault(); e.returnValue = ''; }
-});
 
 // ===== INIT =====
 (function init(){
