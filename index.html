@@ -124,12 +124,18 @@
   .ringkasan-card.ready .ringkasan-label{color:var(--primary3)}
   .ringkasan-card.ready .ringkasan-main{color:var(--text);font-size:15px}
   .ringkasan-card.ready .ringkasan-detail{color:var(--primary3);font-size:14.5px}
+  .ringkasan-rows{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+  .ringkasan-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:12.5px;font-weight:700;color:var(--muted)}
+  .ringkasan-row span:first-child{text-transform:uppercase;letter-spacing:.04em;font-size:10.5px;font-weight:800}
+  .ringkasan-row.total{margin-top:4px;padding-top:7px;border-top:1px solid var(--border)}
+  .ringkasan-row.total span:first-child{color:var(--primary3);font-size:11px}
+  .ringkasan-row.total span:last-child{color:var(--primary3);font-size:16px;font-weight:900}
   .ringkasan-warn{display:flex;align-items:flex-start;gap:7px;margin-top:10px;padding-top:10px;
     border-top:1px dashed var(--border);font-size:11px;font-weight:700;color:#B45309;line-height:1.5}
   .ringkasan-warn i{margin-top:2px;flex-shrink:0}
 
   .btn-tambah, .btn-simpan{
-    width:100%;padding:16px;font-size:14.5px;border-radius:14px;letter-spacing:.06em;
+    width:100%;padding:20px 16px;font-size:14.5px;border-radius:14px;letter-spacing:.06em;
     background:var(--bg2);color:var(--muted);border:none;font-weight:800;cursor:not-allowed;font-family:inherit;
     transition:background .2s,color .2s,box-shadow .2s;text-transform:uppercase
   }
@@ -233,7 +239,7 @@
   .dp-pinjaman-val.positive{color:var(--green)}
 
   .dp-empty{text-align:center;color:var(--muted);font-size:12.5px;padding:20px 0}
-  .dp-close-btn{width:100%;background:var(--bg2);color:var(--muted);border:none;border-radius:14px;padding:14px;
+  .dp-close-btn{width:100%;background:var(--bg2);color:var(--muted);border:none;border-radius:14px;padding:19px 14px;
     font-size:13.5px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:4px}
 
   .switch-pegawai{text-align:center;margin-top:2px}
@@ -326,7 +332,7 @@
         <div id="p_bagianChip" class="bagian-chip empty"><i class="fa-solid fa-layer-group"></i> <span>Bagian belum terpilih</span></div>
       </div>
       <div id="p_namaLockHint" class="field-group" style="display:none;font-size:10.5px;color:var(--muted);font-weight:600;line-height:1.5;">
-        <i class="fa-solid fa-lock" style="margin-right:4px;color:var(--primary3);"></i>HP ini terdaftar untuk <b id="p_namaLockNama" style="color:var(--text2);"></b>. Salah orang? Hubungi admin.
+        <i class="fa-solid fa-lock" style="margin-right:4px;color:var(--primary3);"></i>HP ini terdaftar untuk&nbsp;<b id="p_namaLockNama" style="color:var(--text2);"></b>. Salah orang? Hubungi admin.
       </div>
     </div>
 
@@ -360,7 +366,6 @@
       <div class="ringkasan-label">Cek dulu sebelum simpan</div>
       <div class="ringkasan-main" id="ringkasanMain">Lengkapi nama, brand, pekerjaan &amp; qty dulu</div>
       <div class="ringkasan-detail" id="ringkasanDetail"></div>
-      <div class="ringkasan-warn"><i class="fa-solid fa-triangle-exclamation"></i> Data yang sudah disimpan tidak bisa diubah sendiri — hubungi admin bila salah input.</div>
     </div>
 
     <button class="btn-simpan" id="btnSimpan" onclick="simpanData()">Simpan Data</button>
@@ -719,7 +724,12 @@ function _updateRingkasan(ok, brand, jenis, qty, harga){
   card.classList.toggle('ready', !!ok);
   if (ok) {
     main.textContent = brand + ' — ' + jenis;
-    detail.textContent = qty + 'x · Rp ' + fmt(harga*qty);
+    detail.innerHTML =
+      '<div class="ringkasan-rows">' +
+        '<div class="ringkasan-row"><span>Qty</span><span>' + qty + '</span></div>' +
+        '<div class="ringkasan-row"><span>Harga satuan</span><span>Rp ' + fmt(harga) + '</span></div>' +
+        '<div class="ringkasan-row total"><span>Total</span><span>Rp ' + fmt(harga*qty) + '</span></div>' +
+      '</div>';
   } else {
     main.textContent = 'Lengkapi nama, brand, pekerjaan & qty dulu';
     detail.textContent = '';
