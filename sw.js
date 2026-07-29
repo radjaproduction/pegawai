@@ -37,7 +37,7 @@ self.addEventListener('fetch', (event) => {
 
   // Network-first untuk file HTML utama, biar update kode langsung kepakai
   // begitu ada versi baru; fallback ke cache kalau lagi offline.
-  if (req.mode === 'navigate' || req.url.includes('input-pegawai.html')) {
+  if (req.mode === 'navigate' || req.url.includes('index.html')) {
     event.respondWith(
       fetch(req)
         .then((res) => {
@@ -45,7 +45,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
           return res;
         })
-        .catch(() => caches.match(req).then((cached) => cached || caches.match('./input-pegawai.html')))
+        .catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html')))
     );
     return;
   }
