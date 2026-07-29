@@ -85,9 +85,9 @@
   .field-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
   select.f-input, input.f-input{
-    width:100%;padding:16px 14px;border:1.5px solid var(--border);border-radius:13px;background:var(--card2);
-    font-size:15.5px;font-family:inherit;font-weight:600;color:var(--text);appearance:none;-webkit-appearance:none;outline:none;
-    transition:border-color .15s;
+    width:100%;padding:21px 14px;border:1.5px solid var(--border);border-radius:14px;background:var(--card2);
+    font-size:16px;font-family:inherit;font-weight:600;color:var(--text);appearance:none;-webkit-appearance:none;outline:none;
+    transition:border-color .15s;min-height:58px;
   }
   select.f-input:focus, input.f-input:focus{border-color:var(--primary)}
   select.f-input:disabled, input.f-input:disabled{background:var(--bg2);color:var(--muted);cursor:not-allowed}
@@ -272,25 +272,25 @@
 
     <!-- FORM PEKERJAAN -->
     <div class="card">
-      <div class="field-group">
-        <div class="card-label">Brand</div>
-        <select class="f-input" id="p_brand" disabled onchange="onGantiBrand()">
-          <option value="" class="f-placeholder">-- pilih brand --</option>
-        </select>
-      </div>
       <div class="field-row2 field-group">
+        <div>
+          <div class="card-label">Brand</div>
+          <select class="f-input" id="p_brand" disabled onchange="onGantiBrand()">
+            <option value="" class="f-placeholder">-- pilih brand --</option>
+          </select>
+        </div>
         <div>
           <div class="card-label">Pekerjaan</div>
           <select class="f-input" id="p_jenis" disabled onchange="onGantiJenis()">
             <option value="" class="f-placeholder">-- pekerjaan --</option>
           </select>
         </div>
-        <div>
-          <div class="card-label">Qty</div>
-          <div class="qty-trigger" id="p_qtyTrigger" onclick="bukaNumpad()">
-            <input class="f-input f-placeholder" type="text" id="p_qtyDisplay" readonly placeholder="ketuk qty..." inputmode="none">
-            <input type="hidden" id="p_qty" value="">
-          </div>
+      </div>
+      <div class="field-group">
+        <div class="card-label">Qty</div>
+        <div class="qty-trigger" id="p_qtyTrigger" onclick="bukaNumpad()">
+          <input class="f-input f-placeholder" type="text" id="p_qtyDisplay" readonly placeholder="ketuk qty..." inputmode="none">
+          <input type="hidden" id="p_qty" value="">
         </div>
       </div>
       <div class="harga-hint" id="p_hargaHint"></div>
