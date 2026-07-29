@@ -45,23 +45,38 @@
   .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
   /* APP SHELL */
-  .app{width:100%;max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+  .app{width:100%;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
 
-  .app-header{background:var(--header-grad);padding:0 4px 18px;padding-top:calc(16px + var(--safe-top));
+  .app-header{background:var(--header-grad);padding:0 14px 18px;padding-top:calc(16px + var(--safe-top));
     flex-shrink:0;position:relative;overflow:hidden;border-radius:0 0 26px 26px}
   .app-header::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06)}
   .app-header::after{content:'';position:absolute;top:20px;right:30px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.04)}
-  .hdr-row{display:flex;align-items:center;gap:11px;position:relative;z-index:1}
-  .hdr-icon{width:40px;height:40px;background:rgba(255,255,255,.20);border-radius:12px;display:flex;align-items:center;
-    justify-content:center;color:#fff;font-size:18px;flex-shrink:0;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25)}
+  .hdr-row{display:flex;align-items:center;justify-content:space-between;gap:11px;position:relative;z-index:1}
+  .hdr-row-l{display:flex;align-items:center;gap:11px;min-width:0}
+  .hdr-icon{width:34px;height:34px;background:rgba(255,255,255,.20);border-radius:11px;display:flex;align-items:center;
+    justify-content:center;color:#fff;font-size:15px;flex-shrink:0;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25)}
   .hdr-title{font-size:16px;font-weight:900;color:#fff;line-height:1.2;letter-spacing:-.01em}
-  .hdr-sub{font-size:10px;color:rgba(255,255,255,.72);font-weight:600;margin-top:3px;letter-spacing:.02em}
-  .hdr-date{margin-top:14px;position:relative;z-index:1;background:rgba(255,255,255,.14);backdrop-filter:blur(10px);
-    border:1px solid rgba(255,255,255,.22);border-radius:13px;padding:9px 13px;display:flex;align-items:center;gap:8px;
-    color:#fff;font-size:12px;font-weight:700}
-  .hdr-date i{opacity:.85;font-size:11px}
+  .hdr-sub{font-size:10px;color:rgba(255,255,255,.72);font-weight:600;margin-top:3px;letter-spacing:.02em;display:flex;align-items:center;gap:5px}
+  .hdr-sub-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 6px rgba(16,185,129,.8)}
+  .hdr-badge{flex-shrink:0;text-align:right;background:rgba(255,255,255,.14);backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:6px 11px}
+  .hdr-badge-ver{font-size:10.5px;font-weight:900;color:#fff;letter-spacing:.02em}
+  .hdr-badge-date{font-size:9px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+  .hdr-badge-status{display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:8.5px;font-weight:800;
+    color:rgba(255,255,255,.85);letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+  .hdr-badge-status i{width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 5px rgba(16,185,129,.9)}
 
-  .app-body{flex:1;padding:14px 4px calc(24px + var(--safe-bottom));display:flex;flex-direction:column;gap:10px}
+  .hdr-stats{margin-top:14px;position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .hdr-stat{border-radius:16px;padding:12px 13px;overflow:hidden;position:relative}
+  .hdr-stat-a{background:rgba(255,255,255,.14);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.22)}
+  .hdr-stat-a::after{content:'';position:absolute;bottom:-18px;right:-18px;width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.08)}
+  .hdr-stat-b{background:linear-gradient(135deg,#0EA05E,#10B981)}
+  .hdr-stat-icon{width:26px;height:26px;border-radius:9px;background:rgba(255,255,255,.22);display:flex;align-items:center;
+    justify-content:center;color:#fff;font-size:11px;margin-bottom:9px}
+  .hdr-stat-val{font-size:19px;font-weight:900;color:#fff;line-height:1.1;letter-spacing:-.01em}
+  .hdr-stat-label{font-size:9px;font-weight:800;color:rgba(255,255,255,.78);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+
+  .app-body{flex:1;padding:14px 10px calc(24px + var(--safe-bottom));display:flex;flex-direction:column;gap:10px}
 
   /* CARD */
   .card{background:var(--card);border-radius:20px;padding:14px 12px;box-shadow:var(--shadow);border:1px solid var(--border)}
@@ -146,7 +161,7 @@
   /* POPUP / NUMPAD */
   .popup{position:fixed;inset:0;background:rgba(13,20,45,.55);z-index:999998;display:none;align-items:flex-end;justify-content:center}
   .popup.active{display:flex}
-  .popup-sheet{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px 18px calc(20px + var(--safe-bottom));
+  .popup-sheet{background:var(--card);width:100%;border-radius:24px 24px 0 0;padding:20px 18px calc(20px + var(--safe-bottom));
     box-shadow:0 -8px 40px rgba(13,20,45,.25);animation:sheetUp .25s cubic-bezier(.34,1.56,.64,1)}
   @keyframes sheetUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
   .numpad-display{text-align:center;margin-bottom:16px}
@@ -169,6 +184,19 @@
   @media (max-width:360px){
     .rw-stat-val{font-size:14px}
   }
+
+  /* TAB BAR */
+  .tab-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--card);border-radius:16px;
+    padding:5px;box-shadow:var(--shadow);border:1px solid var(--border)}
+  .tab-btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 8px;border:none;border-radius:12px;
+    background:transparent;color:var(--muted);font-family:inherit;font-size:12.5px;font-weight:800;letter-spacing:.02em;
+    cursor:pointer;transition:background .18s,color .18s;position:relative}
+  .tab-btn i{font-size:12px}
+  .tab-btn.active{background:linear-gradient(135deg,var(--primary3),var(--primary));color:#fff;box-shadow:0 4px 14px rgba(26,86,219,.3)}
+  .tab-btn .tab-dot{position:absolute;top:6px;right:10px;width:7px;height:7px;border-radius:50%;background:var(--gold);
+    box-shadow:0 0 0 2px var(--card)}
+  .tab-panel{display:none;flex-direction:column;gap:10px}
+  .tab-panel.active{display:flex}
 </style>
 </head>
 <body>
@@ -184,16 +212,43 @@
 <div class="app">
   <div class="app-header">
     <div class="hdr-row">
-      <div class="hdr-icon"><i class="fa-solid fa-pen-to-square"></i></div>
-      <div>
-        <div class="hdr-title">RADJA PRODUCTION</div>
-        <div class="hdr-sub">Input Data Kerja Harian</div>
+      <div class="hdr-row-l">
+        <div class="hdr-icon"><i class="fa-solid fa-pen-to-square"></i></div>
+        <div>
+          <div class="hdr-title">RADJA PRODUCTION</div>
+          <div class="hdr-sub"><span class="hdr-sub-dot"></span>Input Data Kerja Harian</div>
+        </div>
+      </div>
+      <div class="hdr-badge">
+        <div class="hdr-badge-ver">v1.0.0</div>
+        <div class="hdr-badge-date" id="hdrTanggal">—</div>
+        <div class="hdr-badge-status"><i></i>ONLINE</div>
       </div>
     </div>
-    <div class="hdr-date"><i class="fa-solid fa-calendar-day"></i> <span id="hdrTanggal">—</span></div>
+    <div class="hdr-stats">
+      <div class="hdr-stat hdr-stat-a">
+        <div class="hdr-stat-icon"><i class="fa-solid fa-list-check"></i></div>
+        <div class="hdr-stat-val" id="hdrTotalItem">0</div>
+        <div class="hdr-stat-label">Total Item</div>
+      </div>
+      <div class="hdr-stat hdr-stat-b">
+        <div class="hdr-stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+        <div class="hdr-stat-val" id="hdrTotalQty">Rp 0</div>
+        <div class="hdr-stat-label">Total Pendapatan</div>
+      </div>
+    </div>
   </div>
 
   <div class="app-body">
+
+    <!-- TAB BAR -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabBtn1" onclick="switchTab(1)"><i class="fa-solid fa-pen-to-square"></i> Input Data</button>
+      <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Hari Ini</button>
+    </div>
+
+    <!-- TAB 1: INPUT DATA -->
+    <div class="tab-panel active" id="tabPanel1">
 
     <!-- PILIH PEGAWAI -->
     <div class="card">
@@ -252,7 +307,11 @@
 
     <div class="id-note">Pastikan <b>nama</b> dan <b>qty</b> sudah benar sebelum menyimpan. Data yang sudah disimpan tidak bisa diubah sendiri — hubungi admin bila salah input.</div>
 
-    <!-- RIWAYAT -->
+    </div>
+    <!-- /TAB 1 -->
+
+    <!-- TAB 2: RIWAYAT HARI INI -->
+    <div class="tab-panel" id="tabPanel2">
     <div class="card riwayat-card">
       <div class="rw-head">
         <div class="rw-head-l"><i class="fa-solid fa-clock-rotate-left"></i> RIWAYAT HARI INI</div>
@@ -264,6 +323,8 @@
       </div>
       <div class="rw-list" id="rwList"><div class="rw-empty">Pilih nama untuk melihat riwayat</div></div>
     </div>
+    </div>
+    <!-- /TAB 2 -->
 
   </div>
 </div>
@@ -344,6 +405,11 @@ function todayLabel(){
   const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date().getDay()];
   const d = new Date();
   return hari + ', ' + String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+}
+function todayBadgeLabel(){
+  const bulan = ['JAN','FEB','MAR','APR','MEI','JUN','JUL','AGU','SEP','OKT','NOV','DES'];
+  const d = new Date();
+  return String(d.getDate()).padStart(2,'0') + ' ' + bulan[d.getMonth()] + ' ' + d.getFullYear();
 }
 
 // Sama seperti aplikasi utama: tolak karakter yang bisa membentuk tag/atribut
@@ -615,11 +681,15 @@ function _renderStaging(){
     countEl.textContent = '0';
     totalEl.textContent = 'Rp 0';
     $('btnSimpan').classList.remove('active');
+    $('hdrTotalItem').textContent = '0';
+    $('hdrTotalQty').textContent = 'Rp 0';
     return;
   }
   countEl.textContent = _stagingList.length;
   const grandTotal = _stagingList.reduce((s,i)=>s+i.jumlah,0);
   totalEl.textContent = 'Rp ' + fmt(grandTotal);
+  $('hdrTotalItem').textContent = _stagingList.length;
+  $('hdrTotalQty').textContent = 'Rp ' + fmt(grandTotal);
   list.innerHTML = _stagingList.map((item, idx) => `
     <div class="staging-item">
       <div class="si-main">
@@ -634,6 +704,17 @@ function _renderStaging(){
   $('btnSimpan').classList.add('active');
 }
 window.hapusStaging = (idx) => { _stagingList.splice(idx,1); _renderStaging(); };
+
+// ===== TAB SWITCH =====
+let _activeTab = 1;
+window.switchTab = (n) => {
+  _activeTab = n;
+  $('tabBtn1').classList.toggle('active', n === 1);
+  $('tabBtn2').classList.toggle('active', n === 2);
+  $('tabPanel1').classList.toggle('active', n === 1);
+  $('tabPanel2').classList.toggle('active', n === 2);
+  if (n === 2) muatRiwayat();
+};
 
 window.tambahKeStaging = () => {
   const nama = $('p_nama').value;
@@ -738,7 +819,7 @@ window.addEventListener('beforeunload', (e) => {
 
 // ===== INIT =====
 (function init(){
-  $('hdrTanggal').textContent = todayLabel();
+  $('hdrTanggal').textContent = todayBadgeLabel();
   _initTimeout = setTimeout(() => {
     const flags = Object.entries(_initFlags).filter(([,v])=>!v).map(([k])=>k);
     _showDbError('⚠ Koneksi timeout.<br>Data belum termuat: <b>' + flags.join(', ') + '</b><br><br>Cek koneksi internet, lalu coba lagi.');
