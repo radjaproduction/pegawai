@@ -347,7 +347,7 @@
     <!-- TAB BAR -->
     <div class="tab-bar">
       <button class="tab-btn active" id="tabBtn1" onclick="switchTab(1)"><i class="fa-solid fa-pen-to-square"></i> Input Data</button>
-      <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Hari Ini</button>
+      <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Minggu Ini</button>
     </div>
 
     <!-- TAB 1: INPUT DATA -->
@@ -413,11 +413,11 @@
     </div>
     <!-- /TAB 1 -->
 
-    <!-- TAB 2: RIWAYAT HARI INI -->
+    <!-- TAB 2: RIWAYAT MINGGU INI -->
     <div class="tab-panel" id="tabPanel2">
     <div class="card riwayat-card">
       <div class="rw-head">
-        <div class="rw-head-l"><i class="fa-solid fa-clock-rotate-left"></i> RIWAYAT HARI INI</div>
+        <div class="rw-head-l"><i class="fa-solid fa-clock-rotate-left"></i> RIWAYAT MINGGU INI</div>
         <button class="rw-refresh" id="rwRefreshBtn" onclick="muatRiwayat(true)"><i class="fa-solid fa-rotate-right"></i></button>
       </div>
       <div class="rw-stats">
@@ -876,7 +876,7 @@ window.simpanData = async () => {
   }
 };
 
-// ===== RIWAYAT HARI INI (khusus pegawai yang sedang dipilih) =====
+// ===== RIWAYAT MINGGU INI (Senin s/d Minggu, khusus pegawai yang sedang dipilih) =====
 window.muatRiwayat = async (manual) => {
   const nama = $('p_nama').value;
   const rwList = $('rwList');
@@ -890,26 +890,32 @@ window.muatRiwayat = async (manual) => {
   const btn = $('rwRefreshBtn');
   if (manual) btn.classList.add('spin');
   try {
+    // Rentang minggu berjalan: Senin s/d Minggu (reset otomatis tiap Senin
+    // baru karena _getMondayISO menghitung ulang Senin dari tanggal sekarang).
+    const seninISO = _getMondayISO(new Date());
+    const mingguISO = _getSundayISO(new Date());
     const { data: rows, error } = await sb.from(COL.input)
       .select('id, data')
-      .eq('data->>tanggalISO', todayISO())
+      .gte('data->>tanggalISO', seninISO)
+      .lte('data->>tanggalISO', mingguISO)
       .eq('data->>nama', nama);
     if (error) throw error;
     const items = (rows||[]).map(r => r.data).sort((a,b) => String(b.waktu||'').localeCompare(String(a.waktu||'')));
-    const totalHariIni = items.reduce((s,i)=>s+(i.jumlah||0),0);
+    const totalMingguIni = items.reduce((s,i)=>s+(i.jumlah||0),0);
     $('rwEntri').textContent = items.length;
-    $('rwTotal').textContent = 'Rp ' + fmt(totalHariIni);
+    $('rwTotal').textContent = 'Rp ' + fmt(totalMingguIni);
     $('hdrTotalItem').textContent = items.length;
-    $('hdrTotalQty').textContent = 'Rp ' + fmt(totalHariIni);
+    $('hdrTotalQty').textContent = 'Rp ' + fmt(totalMingguIni);
     if (items.length === 0) {
-      rwList.innerHTML = '<div class="rw-empty">Belum ada data tersimpan hari ini</div>';
+      rwList.innerHTML = '<div class="rw-empty">Belum ada data tersimpan minggu ini</div>';
     } else {
       rwList.innerHTML = items.map(it => {
         const jam = it.waktu ? new Date(it.waktu).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '';
+        const tgl = it.tanggal ? it.tanggal + ' · ' : '';
         return `<div class="rw-item">
           <div class="rw-item-main">
             <div class="rw-item-title">${it.brand||''} — ${it.jenis||''}</div>
-            <div class="rw-item-sub">${jam} · ${it.qty||0}x @ Rp ${fmt(it.harga)}</div>
+            <div class="rw-item-sub">${tgl}${jam} · ${it.qty||0}x @ Rp ${fmt(it.harga)}</div>
           </div>
           <div class="rw-item-jum">Rp ${fmt(it.jumlah)}</div>
         </div>`;
@@ -927,6 +933,13 @@ function _getMondayISO(d){
   const dt = new Date(d);
   const day = dt.getDay() || 7; // Minggu(0) dianggap 7
   dt.setDate(dt.getDate() - day + 1);
+  dt.setHours(0,0,0,0);
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+}
+function _getSundayISO(d){
+  const dt = new Date(d);
+  const day = dt.getDay() || 7; // Minggu(0) dianggap 7
+  dt.setDate(dt.getDate() - day + 7); // Minggu di akhir pekan yang sama
   dt.setHours(0,0,0,0);
   return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
 }
