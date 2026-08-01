@@ -545,6 +545,10 @@ async function sbGetAllRows(table){
   }
   return rows;
 }
+async function sbDeleteRow(table, id){
+  const { error } = await sb.from(table).delete().eq('id', id);
+  if (error) throw error;
+}
 
 // ===== STATE =====
 let MASTER = { pegawai:[], pegawaiData:{}, hargaList:[], harga:{}, deviceLockNama:'', deviceLockId:'' };
@@ -571,6 +575,21 @@ async function _ensureDeviceLockSynced(nama){
   _deviceLockSyncing = true;
   try { localStorage.setItem(LOCK_PENDING_KEY, nama); } catch(e) {}
   try {
+    // Hapus dulu kunci lama dengan nama yang sama tapi di perangkat lain
+    // (mis. HP lama, browser lain, sesudah clear cache/install ulang),
+    // supaya satu pegawai maksimal cuma punya 1 device lock aktif.
+    try {
+      const rows = await sbGetAllRows(COL.master);
+      const staleLocks = rows.filter(r => {
+        const d = r.data || {};
+        return d.type === 'device_lock' && d.nama === nama && d.device !== DEVICE_ID;
+      });
+      for (const r of staleLocks) {
+        try { await sbDeleteRow(COL.master, r.id); } catch(e) { console.error('Gagal hapus kunci lama:', e); }
+      }
+    } catch (e) {
+      console.error('Gagal cek kunci lama:', e);
+    }
     await sbInsertRow(COL.master, { type:'device_lock', device: DEVICE_ID, nama, waktu: new Date().toISOString() });
     try { localStorage.removeItem(LOCK_PENDING_KEY); } catch(e) {}
   } catch (e) {
