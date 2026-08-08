@@ -1003,12 +1003,11 @@ window.muatRiwayat = async (manual) => {
       rwList.innerHTML = '<div class="rw-empty">Belum ada data tersimpan minggu ini</div>';
     } else {
       rwList.innerHTML = items.map(it => {
-        const jam = it.waktu ? new Date(it.waktu).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) : '';
         const tgl = it.tanggal ? it.tanggal + ' · ' : '';
         return `<div class="rw-item">
           <div class="rw-item-main">
             <div class="rw-item-title">${it.brand||''} — ${it.jenis||''}</div>
-            <div class="rw-item-sub">${tgl}${jam} · ${it.qty||0}x @ Rp ${fmt(it.harga)}</div>
+            <div class="rw-item-sub">${tgl}${it.qty||0}x @ Rp ${fmt(it.harga)}</div>
           </div>
           <div class="rw-item-jum">Rp ${fmt(it.jumlah)}</div>
         </div>`;
