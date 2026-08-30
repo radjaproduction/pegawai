@@ -446,6 +446,9 @@
     </div>
 
     <button class="btn-simpan" id="btnSimpan" onclick="simpanData()">Simpan Data</button>
+    <button id="btnSinkronkan" onclick="sinkronkanDataTertunda()" style="display:none;width:100%;margin-top:10px;padding:12px;border:1.5px solid var(--primary);border-radius:12px;background:var(--primaryDim);color:var(--primary3);font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;">
+      <i class="fa-solid fa-rotate"></i> Sinkronkan Data <span id="pendingInputCount"></span>
+    </button>
     </div>
 
     </div>
@@ -619,49 +622,119 @@ let _initFlags = { master:false, harga:false };
 let _initTimeout;
 let _deviceLockSyncing = false;
 const INPUT_PENDING_KEY = 'radja_input_pending_queue';
+const INPUT_DB_NAME = 'radja_input_offline_db';
+const INPUT_DB_VERSION = 1;
 let _pendingInputQueue = [];
+let _pendingInputReady = false;
+let _inputDbPromise = null;
 
-function _loadPendingInputQueue(){
-  try {
-    const raw = JSON.parse(localStorage.getItem(INPUT_PENDING_KEY) || '[]');
-    _pendingInputQueue = Array.isArray(raw) ? raw.filter(x => x && x.id && x.data) : [];
-  } catch(e) { _pendingInputQueue = []; }
+function _openInputDb(){
+  if (_inputDbPromise) return _inputDbPromise;
+  _inputDbPromise = new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) { reject(new Error('IndexedDB tidak tersedia')); return; }
+    const req = indexedDB.open(INPUT_DB_NAME, INPUT_DB_VERSION);
+    req.onupgradeneeded = () => req.result.createObjectStore('pending', { keyPath:'id' });
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error('Gagal membuka penyimpanan offline'));
+  });
+  return _inputDbPromise;
 }
-function _savePendingInputQueue(){
-  try { localStorage.setItem(INPUT_PENDING_KEY, JSON.stringify(_pendingInputQueue)); } catch(e) {}
+function _idbGetAll(db){
+  return new Promise((resolve,reject) => {
+    const req = db.transaction('pending','readonly').objectStore('pending').getAll();
+    req.onsuccess = () => resolve(req.result || []); req.onerror = () => reject(req.error);
+  });
+}
+function _idbPut(db, tx){
+  return new Promise((resolve,reject) => {
+    const req = db.transaction('pending','readwrite').objectStore('pending').put(tx);
+    req.onsuccess = resolve; req.onerror = () => reject(req.error);
+  });
+}
+function _idbDelete(db, id){
+  return new Promise((resolve,reject) => {
+    const req = db.transaction('pending','readwrite').objectStore('pending').delete(id);
+    req.onsuccess = resolve; req.onerror = () => reject(req.error);
+  });
+}
+async function _loadPendingInputQueue(){
+  try {
+    const db = await _openInputDb();
+    _pendingInputQueue = await _idbGetAll(db);
+    // Migrasikan antrean versi lama satu kali agar tidak hilang saat upgrade.
+    if (!_pendingInputQueue.length) {
+      try {
+        const legacy = JSON.parse(localStorage.getItem(INPUT_PENDING_KEY) || '[]');
+        if (Array.isArray(legacy)) {
+          for (const tx of legacy.filter(x => x && x.id && x.data)) await _idbPut(db, tx);
+          _pendingInputQueue = legacy.filter(x => x && x.id && x.data);
+          localStorage.removeItem(INPUT_PENDING_KEY);
+        }
+      } catch(e) {}
+    }
+    _pendingInputReady = true;
+  } catch(e) {
+    console.error('Penyimpanan offline tidak tersedia:', e);
+    _pendingInputQueue = [];
+  }
+  _updatePendingInputUI();
+  _retryPendingInputs();
+}
+function _updatePendingInputUI(){
+  const btn = $('btnSinkronkan');
+  const count = $('pendingInputCount');
+  const n = _pendingInputQueue.length;
+  if (btn) btn.style.display = n ? 'block' : 'none';
+  if (count) count.textContent = n ? `(${n})` : '';
+}
+async function _savePendingInput(tx){
+  const db = await _openInputDb();
+  await _idbPut(db, tx);
+  _updatePendingInputUI();
 }
 function _inputFingerprint(data){
   return [data.nama, data.bagian, data.brand, data.jenis, data.qty, data.harga, data.jumlah, data.tanggalISO].join('|');
 }
-function _getOrCreatePendingInput(data){
+async function _getOrCreatePendingInput(data){
   const fingerprint = _inputFingerprint(data);
   let tx = _pendingInputQueue.find(x => x.fingerprint === fingerprint);
   if (!tx) {
     tx = { id: _genId(), fingerprint, data };
     _pendingInputQueue.push(tx);
-    _savePendingInputQueue();
+    await _savePendingInput(tx);
   }
   return tx;
 }
-function _removePendingInput(id){
+async function _removePendingInput(id){
   _pendingInputQueue = _pendingInputQueue.filter(x => x.id !== id);
-  _savePendingInputQueue();
+  const db = await _openInputDb();
+  await _idbDelete(db, id);
+  _updatePendingInputUI();
 }
 async function _retryPendingInputs(){
   // Transaksi di antrean adalah input yang sudah lebih dulu dikonfirmasi
   // pegawai dengan tombol Simpan. Status input OFF hanya memblokir transaksi
   // baru, bukan menghalangi penyelesaian transaksi lama yang tertunda.
-  if (!_pendingInputQueue.length) return;
+  if (!_pendingInputReady || !_pendingInputQueue.length) return;
   for (const tx of [..._pendingInputQueue]) {
     try {
       await sbInsertRowIdempotent(COL.input, tx.id, tx.data);
-      _removePendingInput(tx.id);
+      await _removePendingInput(tx.id);
     } catch(e) {
       // Tetap simpan untuk dicoba lagi pada submit berikutnya / refresh.
       console.warn('Input tertunda belum tersinkron:', e.message);
     }
   }
+  _updatePendingInputUI();
 }
+window.sinkronkanDataTertunda = async () => {
+  const btn = $('btnSinkronkan');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
+  await _retryPendingInputs();
+  if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+  if (_pendingInputQueue.length) showToast('⚠ Masih ada data yang belum tersinkron.');
+  else showToast('✅ Semua data sudah tersinkron.');
+};
 
 // Aplikasi pegawai tetap menjadi pihak yang menyelesaikan sinkronisasi;
 // admin tidak perlu membuka aplikasi payroll setiap hari.
@@ -1021,9 +1094,9 @@ window.simpanData = async () => {
     const payload = { tanggal, tanggalISO, nama, bagian, jenis, brand, qty, harga, jumlah, waktu:new Date().toISOString() };
     // Simpan transaksi yang sedang dikirim sebelum request dimulai. Jika
     // response timeout, retry memakai ID yang sama dan tidak membuat duplikat.
-    tx = _getOrCreatePendingInput(payload);
+    tx = await _getOrCreatePendingInput(payload);
     await sbInsertRowIdempotent(COL.input, tx.id, tx.data);
-    _removePendingInput(tx.id);
+    await _removePendingInput(tx.id);
     showToast('✅ Data berhasil disimpan!');
     btn.textContent = label;
     // brand & bagian tetap, pekerjaan+qty direset supaya cepat input item berikutnya
