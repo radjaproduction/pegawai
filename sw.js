@@ -3,7 +3,7 @@
 // walau sinyal jelek. Data (Supabase) TETAP butuh koneksi internet karena
 // selalu diambil realtime, sengaja TIDAK dicache di sini.
 
-const CACHE_NAME = 'input-radja-shell-v1';
+const CACHE_NAME = 'input-radja-shell-v2';
 const SHELL_FILES = [
   './index.html',
   './manifest.json',
