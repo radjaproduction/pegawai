@@ -581,6 +581,21 @@ async function sbInsertRow(table, data){
   if (error) throw error;
   return { id };
 }
+// Insert idempoten untuk transaksi input pekerjaan. Jika request pertama
+// sebenarnya sudah diterima server tetapi response timeout, percobaan ulang
+// dengan ID yang sama tidak membuat baris kedua.
+async function sbInsertRowIdempotent(table, id, data){
+  _validateRecordData(data);
+  const { error } = await sb.from(table).insert({ id, data });
+  if (!error) return { id };
+
+  // Konflik ID berarti transaksi kemungkinan sudah tersimpan. Verifikasi
+  // dengan read agar error jaringan/RLS tidak salah dianggap sukses.
+  const { data: existing, error: readError } = await sb.from(table)
+    .select('id').eq('id', id).maybeSingle();
+  if (!readError && existing && existing.id === id) return { id, alreadyExists: true };
+  throw error;
+}
 async function sbGetAllRows(table){
   const PAGE_SIZE = 1000;
   let rows = [], from = 0;
@@ -603,6 +618,57 @@ let MASTER = { pegawai:[], pegawaiData:{}, hargaList:[], harga:{}, deviceLockNam
 let _initFlags = { master:false, harga:false };
 let _initTimeout;
 let _deviceLockSyncing = false;
+const INPUT_PENDING_KEY = 'radja_input_pending_queue';
+let _pendingInputQueue = [];
+
+function _loadPendingInputQueue(){
+  try {
+    const raw = JSON.parse(localStorage.getItem(INPUT_PENDING_KEY) || '[]');
+    _pendingInputQueue = Array.isArray(raw) ? raw.filter(x => x && x.id && x.data) : [];
+  } catch(e) { _pendingInputQueue = []; }
+}
+function _savePendingInputQueue(){
+  try { localStorage.setItem(INPUT_PENDING_KEY, JSON.stringify(_pendingInputQueue)); } catch(e) {}
+}
+function _inputFingerprint(data){
+  return [data.nama, data.bagian, data.brand, data.jenis, data.qty, data.harga, data.jumlah, data.tanggalISO].join('|');
+}
+function _getOrCreatePendingInput(data){
+  const fingerprint = _inputFingerprint(data);
+  let tx = _pendingInputQueue.find(x => x.fingerprint === fingerprint);
+  if (!tx) {
+    tx = { id: _genId(), fingerprint, data };
+    _pendingInputQueue.push(tx);
+    _savePendingInputQueue();
+  }
+  return tx;
+}
+function _removePendingInput(id){
+  _pendingInputQueue = _pendingInputQueue.filter(x => x.id !== id);
+  _savePendingInputQueue();
+}
+async function _retryPendingInputs(){
+  // Transaksi di antrean adalah input yang sudah lebih dulu dikonfirmasi
+  // pegawai dengan tombol Simpan. Status input OFF hanya memblokir transaksi
+  // baru, bukan menghalangi penyelesaian transaksi lama yang tertunda.
+  if (!_pendingInputQueue.length) return;
+  for (const tx of [..._pendingInputQueue]) {
+    try {
+      await sbInsertRowIdempotent(COL.input, tx.id, tx.data);
+      _removePendingInput(tx.id);
+    } catch(e) {
+      // Tetap simpan untuk dicoba lagi pada submit berikutnya / refresh.
+      console.warn('Input tertunda belum tersinkron:', e.message);
+    }
+  }
+}
+
+// Aplikasi pegawai tetap menjadi pihak yang menyelesaikan sinkronisasi;
+// admin tidak perlu membuka aplikasi payroll setiap hari.
+window.addEventListener('online', _retryPendingInputs);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') _retryPendingInputs();
+});
 
 // Tampilkan/matikan status terkunci di dropdown Nama Pegawai.
 function _setNamaLockUI(locked, nama){
@@ -705,6 +771,7 @@ function _tryInit(){
         }
       }
     }
+    _retryPendingInputs();
     _showUpdateNotifIfNeeded();
   }
 }
@@ -947,10 +1014,16 @@ window.simpanData = async () => {
   const label = btn.textContent;
   btn.textContent = 'Menyimpan...'; btn.classList.remove('active'); btn.style.pointerEvents = 'none';
   showLoading('MENYIMPAN DATA...');
+  let tx = null;
   try {
     const tanggalISO = todayISO();
     const tanggal = String(new Date().getDate()).padStart(2,'0') + '/' + String(new Date().getMonth()+1).padStart(2,'0') + '/' + new Date().getFullYear();
-    await sbInsertRow(COL.input, { tanggal, tanggalISO, nama, bagian, jenis, brand, qty, harga, jumlah, waktu:new Date().toISOString() });
+    const payload = { tanggal, tanggalISO, nama, bagian, jenis, brand, qty, harga, jumlah, waktu:new Date().toISOString() };
+    // Simpan transaksi yang sedang dikirim sebelum request dimulai. Jika
+    // response timeout, retry memakai ID yang sama dan tidak membuat duplikat.
+    tx = _getOrCreatePendingInput(payload);
+    await sbInsertRowIdempotent(COL.input, tx.id, tx.data);
+    _removePendingInput(tx.id);
     showToast('✅ Data berhasil disimpan!');
     btn.textContent = label;
     // brand & bagian tetap, pekerjaan+qty direset supaya cepat input item berikutnya
@@ -960,7 +1033,14 @@ window.simpanData = async () => {
     onGantiBrand();
     muatRiwayat(true);
   } catch (e) {
-    showToast('❌ Gagal simpan: ' + e.message);
+    const isNetworkError = !navigator.onLine || /network|offline|timeout|failed to fetch|load failed|fetch failed/i.test(String(e && e.message || e));
+    if (tx && isNetworkError) {
+      showToast('⚠ Data tersimpan sementara. Akan dikirim otomatis saat koneksi kembali.', 5000);
+    } else if (tx) {
+      showToast('❌ Belum masuk database. Data diamankan sementara dan akan dicoba lagi.', 5000);
+    } else {
+      showToast('❌ Gagal simpan: ' + e.message);
+    }
     btn.textContent = label;
     _updateBtnSimpan();
   } finally {
@@ -969,7 +1049,7 @@ window.simpanData = async () => {
   }
 };
 
-// ===== RIWAYAT MINGGU INI (Senin s/d Minggu, khusus pegawai yang sedang dipilih) =====
+// ===== RIWAYAT PERIODE INI (Minggu s/d Sabtu, khusus pegawai yang sedang dipilih) =====
 window.muatRiwayat = async (manual) => {
   const nama = $('p_nama').value;
   const rwList = $('rwList');
@@ -983,14 +1063,13 @@ window.muatRiwayat = async (manual) => {
   const btn = $('rwRefreshBtn');
   if (manual) btn.classList.add('spin');
   try {
-    // Rentang minggu berjalan: Senin s/d Minggu (reset otomatis tiap Senin
-    // baru karena _getMondayISO menghitung ulang Senin dari tanggal sekarang).
-    const seninISO = _getMondayISO(new Date());
-    const mingguISO = _getSundayISO(new Date());
+    // Rentang periode payroll: Minggu s/d Sabtu.
+    const mingguISO = _getMingguISO(new Date());
+    const sabtuISO = _getSabtuISO(new Date());
     const { data: rows, error } = await sb.from(COL.input)
       .select('id, data')
-      .gte('data->>tanggalISO', seninISO)
-      .lte('data->>tanggalISO', mingguISO)
+      .gte('data->>tanggalISO', mingguISO)
+      .lte('data->>tanggalISO', sabtuISO)
       .eq('data->>nama', nama);
     if (error) throw error;
     const items = (rows||[]).map(r => r.data).sort((a,b) => String(b.waktu||'').localeCompare(String(a.waktu||'')));
@@ -1020,18 +1099,16 @@ window.muatRiwayat = async (manual) => {
   }
 };
 
-// ===== DETAIL PENDAPATAN (POPUP, PERIODE MINGGUAN: SENIN s/d HARI INI) =====
-function _getMondayISO(d){
+// ===== DETAIL PENDAPATAN (POPUP, PERIODE: MINGGU s/d HARI INI) =====
+function _getMingguISO(d){
   const dt = new Date(d);
-  const day = dt.getDay() || 7; // Minggu(0) dianggap 7
-  dt.setDate(dt.getDate() - day + 1);
+  dt.setDate(dt.getDate() - dt.getDay());
   dt.setHours(0,0,0,0);
   return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
 }
-function _getSundayISO(d){
+function _getSabtuISO(d){
   const dt = new Date(d);
-  const day = dt.getDay() || 7; // Minggu(0) dianggap 7
-  dt.setDate(dt.getDate() - day + 7); // Minggu di akhir pekan yang sama
+  dt.setDate(dt.getDate() - dt.getDay() + 6);
   dt.setHours(0,0,0,0);
   return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
 }
@@ -1055,7 +1132,7 @@ window.bukaDetailPendapatan = async () => {
   const nama = $('p_nama').value;
   if (!nama) { showToast('⚠ Pilih nama pegawai dulu!'); return; }
 
-  const dari = _getMondayISO(new Date());
+  const dari = _getMingguISO(new Date());
   const sampai = todayISO();
 
   const existing = $('detailPendapatanOverlay');
@@ -1243,6 +1320,7 @@ window.bukaDetailPendapatan = async () => {
 // ===== INIT =====
 (function init(){
   $('hdrTanggal').textContent = todayBadgeLabel();
+  _loadPendingInputQueue();
   _initTimeout = setTimeout(() => {
     const flags = Object.entries(_initFlags).filter(([,v])=>!v).map(([k])=>k);
     _showDbError('⚠ Koneksi timeout.<br>Data belum termuat: <b>' + flags.join(', ') + '</b><br><br>Cek koneksi internet, lalu coba lagi.');
