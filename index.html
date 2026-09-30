@@ -605,9 +605,11 @@ async function sbGetAllRows(table){
   while (true) {
     const { data: page, error } = await sb.from(table).select('id, data').order('id', { ascending:true }).range(from, from+PAGE_SIZE-1);
     if (error) throw error;
-    rows = rows.concat(page || []);
-    if (!page || page.length < PAGE_SIZE) break;
-    from += PAGE_SIZE;
+    // Jangan berhenti hanya karena page < PAGE_SIZE: batas max-rows di server
+    // bisa lebih kecil dari PAGE_SIZE sehingga data terpotong. Lanjut sampai kosong.
+    if (!page || page.length === 0) break;
+    rows = rows.concat(page);
+    from += page.length;
   }
   return rows;
 }
@@ -1102,7 +1104,7 @@ window.simpanData = async () => {
     showToast('✅ Data berhasil disimpan!');
     btn.textContent = label;
     // brand & bagian tetap, pekerjaan+qty direset supaya cepat input item berikutnya
-    const brandsForBagian = [...new Set(MASTER.hargaList.filter(h => (!bagian || !h.bagian || h.bagian === bagian) && h.brand).map(h=>h.brand))].sort();
+    const brandsForBagian = [...new Set(MASTER.hargaList.filter(h => (!_nb(bagian) || !_nb(h.bagian) || _nb(h.bagian) === _nb(bagian)) && h.brand).map(h=>h.brand))].sort();
     resetSelect('p_brand', brandsForBagian, '-- pilih brand --', false);
     $('p_brand').value = brand;
     onGantiBrand();
