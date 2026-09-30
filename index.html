@@ -809,6 +809,14 @@ function _applyInputLockUI(){
 
 // Normalisasi bagian: abaikan spasi ujung & huruf besar/kecil supaya filter tidak salah buang pekerjaan
 const _nb = v => String(v == null ? '' : v).trim().toLowerCase();
+// Cari harga berdasarkan brand + bagian pegawai + pekerjaan.
+function hargaFor(brand, bagian, jenis){
+  const b = _nb(bagian);
+  if (b && MASTER.harga[brand+'|'+b+'|'+jenis]) return MASTER.harga[brand+'|'+b+'|'+jenis];
+  if (MASTER.harga[brand+'||'+jenis]) return MASTER.harga[brand+'||'+jenis]; // baris harga tanpa bagian
+  if (!b) return MASTER.harga[brand+'|'+jenis] || 0; // pegawai tanpa bagian: perilaku lama
+  return 0;
+}
 function resetSelect(id, items, placeholder, disabled=false){
   const el = $(id);
   el.innerHTML = `<option value="" class="f-placeholder">${placeholder}</option>` +
@@ -925,7 +933,9 @@ function initMaster(){
       const data = r.data || {};
       if (data.brand) {
         const key = data.pekerjaan ? (data.brand + '|' + data.pekerjaan) : data.brand;
-        MASTER.harga[key] = data.harga;
+        MASTER.harga[key] = data.harga; // key lama (tanpa bagian) -- hanya fallback untuk pegawai tanpa bagian
+        // Key utama: brand|bagian|pekerjaan, supaya pekerjaan bernama sama di bagian berbeda tidak saling menimpa
+        if (data.pekerjaan) MASTER.harga[data.brand + '|' + _nb(data.bagian) + '|' + data.pekerjaan] = data.harga;
         MASTER.hargaList.push({ brand:data.brand, bagian:data.bagian||'', pekerjaan:data.pekerjaan||'', harga:data.harga });
       }
     });
@@ -981,7 +991,7 @@ window.onGantiJenis = () => {
   _resetQty();
   const hint = $('p_hargaHint');
   if (brand && jenis) {
-    const harga = MASTER.harga[brand+'|'+jenis] || 0;
+    const harga = hargaFor(brand, (MASTER.pegawaiData[$('p_nama').value]||{}).bagian, jenis);
     if (harga) {
       $('p_qtyTrigger').style.opacity = '1'; $('p_qtyTrigger').style.pointerEvents = 'auto';
       hint.className = 'harga-hint show'; hint.innerHTML = `Harga satuan: <b>Rp ${fmt(harga)}</b>`;
@@ -1009,7 +1019,7 @@ window.cancelTransaksi = () => {
 function _updateBtnSimpan(){
   const nama = $('p_nama').value, brand = $('p_brand').value, jenis = $('p_jenis').value;
   const qty = parseInt($('p_qty').value) || 0;
-  const harga = MASTER.harga[brand+'|'+jenis] || 0;
+  const harga = hargaFor(brand, (MASTER.pegawaiData[nama]||{}).bagian, jenis);
   const ok = nama && brand && jenis && qty > 0 && harga > 0 && !MASTER.inputLocked;
   $('btnSimpan').classList.toggle('active', !!ok);
   _updateRingkasan(ok, brand, jenis, qty, harga);
@@ -1083,7 +1093,7 @@ window.simpanData = async () => {
   const jenis = $('p_jenis').value;
   const qty = parseInt($('p_qty').value) || 0;
   if (!nama || !brand || !jenis || qty < 1) { showToast('⚠ Lengkapi semua field dulu!'); return; }
-  const harga = MASTER.harga[brand+'|'+jenis] || 0;
+  const harga = hargaFor(brand, bagian, jenis);
   if (!harga) { showToast('⚠ Harga belum diset admin!'); return; }
   const jumlah = harga*qty;
 
