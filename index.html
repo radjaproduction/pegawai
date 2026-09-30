@@ -805,6 +805,8 @@ function _applyInputLockUI(){
   }
 }
 
+// Normalisasi bagian: abaikan spasi ujung & huruf besar/kecil supaya filter tidak salah buang pekerjaan
+const _nb = v => String(v == null ? '' : v).trim().toLowerCase();
 function resetSelect(id, items, placeholder, disabled=false){
   const el = $(id);
   el.innerHTML = `<option value="" class="f-placeholder">${placeholder}</option>` +
@@ -944,7 +946,7 @@ window.onGantiNama = (fromUser = true) => {
   }
   if (nama) localStorage.setItem(LS_KEY, nama); else localStorage.removeItem(LS_KEY);
 
-  const brandsForBagian = [...new Set(MASTER.hargaList.filter(h => (!peg.bagian || !h.bagian || h.bagian === peg.bagian)).map(h => h.brand))].filter(Boolean).sort();
+  const brandsForBagian = [...new Set(MASTER.hargaList.filter(h => (!_nb(peg.bagian) || !_nb(h.bagian) || _nb(h.bagian) === _nb(peg.bagian))).map(h => h.brand))].filter(Boolean).sort();
   resetSelect('p_brand', brandsForBagian, '-- pilih brand --', !nama || !brandsForBagian.length);
   resetSelect('p_jenis', [], '-- pekerjaan --', true);
   _resetQty();
@@ -963,7 +965,7 @@ window.onGantiNama = (fromUser = true) => {
 window.onGantiBrand = () => {
   const brand = $('p_brand').value;
   const bagian = (MASTER.pegawaiData[$('p_nama').value] || {}).bagian || '';
-  const pekerjaanList = [...new Set(MASTER.hargaList.filter(h => h.brand === brand && (!bagian || !h.bagian || h.bagian === bagian) && h.pekerjaan).map(h => h.pekerjaan))].sort();
+  const pekerjaanList = [...new Set(MASTER.hargaList.filter(h => h.brand === brand && (!_nb(bagian) || !_nb(h.bagian) || _nb(h.bagian) === _nb(bagian)) && h.pekerjaan).map(h => h.pekerjaan))].sort();
   resetSelect('p_jenis', pekerjaanList, '-- pekerjaan --', !brand || !pekerjaanList.length);
   _resetQty();
   $('p_hargaHint').className = 'harga-hint show';
