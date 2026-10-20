@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Input Data — Radja Production</title>
 <meta name="theme-color" content="#1A2A8C">
 <meta name="mobile-web-app-capable" content="yes">
@@ -23,7 +23,7 @@
   :root{
     --bg:#F2F5FA; --bg2:#E8EEF5; --card:#FFFFFF; --card2:#F7F9FC;
     --primary:#4B8EF8; --primary2:#6BA3FF; --primary3:#1A56DB; --primaryDim:#E0EAFF; --primaryDark:#0D2B6E;
-    --text:#1A2340; --text2:#2C3A5A; --muted:#7B8DB0; --border:#DDE4F0;
+    --text:#1A2340; --text2:#2C3A5A; --muted:#566783; --border:#DDE4F0;
     --shadow:0 4px 20px rgba(26,86,219,.12); --shadow2:0 8px 36px rgba(26,86,219,.18);
     --red:#EF4444; --green:#10B981; --gold:#F59E0B;
     --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
@@ -135,7 +135,7 @@
   }
   select.f-input:focus, input.f-input:focus{border-color:var(--primary)}
   select.f-input:disabled, input.f-input:disabled{background:var(--bg2);color:var(--muted);cursor:not-allowed}
-  select.f-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%237B8DB0' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  select.f-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23566783' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 15px center;padding-right:36px}
   .f-placeholder{color:var(--muted)!important}
 
@@ -398,7 +398,7 @@
     <!-- PILIH PEGAWAI -->
     <div class="card card-pegawai">
       <div class="field-group">
-        <div class="card-label">Nama Pegawai</div>
+        <label class="card-label" for="p_nama">Nama Pegawai</label>
         <div class="pegawai-row">
           <select class="f-input" id="p_nama" onchange="onGantiNama()">
             <option value="" class="f-placeholder">-- pilih nama kamu --</option>
@@ -415,20 +415,20 @@
     <div class="card card-brand">
       <div class="field-row2 field-group">
         <div>
-          <div class="card-label">Brand</div>
+          <label class="card-label" for="p_brand">Brand</label>
           <select class="f-input" id="p_brand" disabled onchange="onGantiBrand()">
             <option value="" class="f-placeholder">-- pilih brand --</option>
           </select>
         </div>
         <div>
-          <div class="card-label">Pekerjaan</div>
+          <label class="card-label" for="p_jenis">Pekerjaan</label>
           <select class="f-input" id="p_jenis" disabled onchange="onGantiJenis()">
             <option value="" class="f-placeholder">-- pekerjaan --</option>
           </select>
         </div>
       </div>
       <div class="field-group">
-        <div class="card-label">Qty</div>
+        <label class="card-label" for="p_qtyDisplay">Qty</label>
         <div class="qty-trigger" id="p_qtyTrigger" onclick="bukaNumpad()">
           <input class="f-input f-placeholder" type="text" id="p_qtyDisplay" readonly placeholder="ketuk qty..." inputmode="none">
           <input type="hidden" id="p_qty" value="">
