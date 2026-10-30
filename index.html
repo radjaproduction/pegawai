@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Input Data — Radja Production</title>
-<meta name="theme-color" content="#1A2A8C">
+<meta name="theme-color" content="#0D2B6E">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -30,11 +30,16 @@
     --header-grad:linear-gradient(160deg,#1A2A8C 0%,#2347D8 55%,#3B7BF8 100%);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{width:100%;min-height:100vh;min-height:100dvh;background:var(--bg);color:var(--text);
+  html{background:#0D2B6E}
+  html,body{width:100%;min-height:100vh;min-height:100dvh;background:transparent;color:var(--text);
     font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden;
     overscroll-behavior:none;overscroll-behavior-x:none;overscroll-behavior-y:none;
     touch-action:pan-y;
     scrollbar-width:none;-ms-overflow-style:none}
+  body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-color:#0D2B6E;
+    background-image:linear-gradient(90deg,#0D2B6E 0%,rgba(13,43,110,.97) 25%,rgba(13,43,110,.72) 58%,rgba(13,43,110,.28) 100%),
+      url('./factory-background.jpg');
+    background-position:center,right center;background-size:cover;background-repeat:no-repeat}
   html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;width:0;height:0}
   *::-webkit-scrollbar{display:none;width:0;height:0}
   *{scrollbar-width:none;-ms-overflow-style:none}
@@ -56,7 +61,7 @@
   .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
   /* APP SHELL */
-  .app{width:100%;max-width:520px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+  .app{position:relative;z-index:1;width:100%;max-width:520px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
 
   .app-header{background:var(--header-grad);padding:0 14px 18px;padding-top:calc(16px + var(--safe-top));
     flex-shrink:0;position:relative;overflow:hidden;border-radius:0 0 26px 26px}

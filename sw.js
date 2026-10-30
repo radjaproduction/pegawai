@@ -1,14 +1,15 @@
 // Service worker untuk Input Data — Radja Production
-// Cuma cache "app shell" (file HTML-nya sendiri) supaya app tetap kebuka
+// Cache app shell dan background supaya app tetap kebuka
 // walau sinyal jelek. Data (Supabase) TETAP butuh koneksi internet karena
 // selalu diambil realtime, sengaja TIDAK dicache di sini.
 
-const CACHE_NAME = 'input-radja-shell-v3';
+const CACHE_NAME = 'input-radja-shell-v4';
 const SHELL_FILES = [
   './index.html',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './factory-background.jpg'
 ];
 
 self.addEventListener('install', (event) => {
