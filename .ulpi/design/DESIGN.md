@@ -55,7 +55,7 @@ One humanist/geometric sans family in varied weights keeps the product familiar 
 - `radius`: 8px controls, 12px pills, 16px compact panes, 20px major cards, 24px sheets.
 - `motion`: 100ms pressed feedback, 180ms state transition, 250ms sheet entry; `cubic-bezier(0.2, 0.7, 0.2, 1)`, no bounce; honor `prefers-reduced-motion`.
 - `elevation`: blue-tinted shadows plus one subtle inset highlight; no stacked heavy shadows.
-- `glass`: translucent blue/ice fills and 1px edge; do not use `backdrop-filter`, CSS filters, animated gradients, or additional image layers. If the browser lacks alpha blending, provide an opaque token fallback.
+- `glass`: translucent blue/ice fills and 1.5px edge; use a lightly raised surface and inset highlight for the employee-section chip. Do not use `backdrop-filter`, CSS filters, animated gradients, or additional image layers. If the browser lacks alpha blending, provide an opaque token fallback.
 - `z-index`: existing app stacking remains unchanged; do not alter overlays or sticky controls for a surface restyle.
 
 ## Voice

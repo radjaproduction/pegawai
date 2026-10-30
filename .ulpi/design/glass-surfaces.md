@@ -12,7 +12,7 @@ Industrial / signage, interpreted as quality-inspection glass for a garment prod
 - Follow Payroll Radja's translucent blue stat panes and photo-fade context, not its opaque menu-card style.
 - Use only CSS translucent fills, borders, and a subtle inset highlight. Do not add `backdrop-filter`, filter effects, JS, packages, requests, image layers, or animations. This avoids compositing work across many simultaneous surfaces.
 - Keep the existing optimized factory photo/background and its offline cache behavior unchanged.
-- The outer form cards should read as glass over the photo; inner inputs remain quieter, slightly more opaque glass to preserve focus and text clarity.
+- The outer form cards should read as glass over the photo; inner inputs remain quieter, slightly more opaque glass to preserve focus and text clarity. Edges should be 1.5px: present enough to define each surface without looking heavy.
 - Semantic green, amber, and red remain reserved for existing statuses; they are translucent tints rather than solid opaque cards.
 
 ## Flow and states
@@ -40,7 +40,7 @@ User opens Riwayat Minggu Ini → views entry count, total and list → refreshe
 |------------------|-----------|
 | Header badge and stat panes | Continue the Payroll reference: translucent white-blue pane, fine light border, restrained inset edge. White text only on blue header panes. |
 | Employee and work form cards | Shared ice-blue glass fill with enough opacity for dark labels; a thin brighter top edge and quiet blue shadow. Remove the opaque gradient fills while retaining their current text hierarchy. |
-| Inputs, employee chip, quantity control | Slightly more opaque light-blue glass wells, clear borders and focus ring; preserve native select/input behavior and disabled state. |
+| Inputs, employee chip, quantity control | Slightly more opaque light-blue glass wells with a 1.5px visible edge and focus ring; give the employee-section chip a faint inset highlight and restrained blue shadow so it does not read flat. Preserve native select/input behavior and disabled state. |
 | Summary card and rows | Light glass pane; ready state uses a stronger blue tint and existing blue text; maintain divider visibility. |
 | History card, stats, list, items | Reuse the same material family; deep-blue pane with white text for the main history surface, lighter translucent inner rows. Preserve list scroll and item separation. |
 | Tab bar and tab buttons | Glass rail; inactive control is transparent with muted text, active tab is the strongest blue pane with white text and a visible focus ring. |
