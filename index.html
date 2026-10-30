@@ -1252,47 +1252,49 @@ window.tutupDetailPendapatan = () => {
 window.bukaDetailPendapatan = async () => {
   const nama = $('p_nama').value;
   if (!nama) { showToast('⚠ Pilih nama pegawai dulu!'); return; }
+  if ($('detailPendapatanOverlay')) return;
 
   const dari = _getMingguISO(new Date());
   const sampai = todayISO();
 
-  const existing = $('detailPendapatanOverlay');
-  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'detailPendapatanOverlay';
+  overlay.className = 'popup active';
+  overlay.innerHTML = `
+    <div class="popup-sheet dp-sheet" role="status" aria-live="polite">
+      <div class="spin-ring"></div>
+      <div class="dp-empty">Memuat detail pendapatan...</div>
+      <button class="dp-close-btn" onclick="tutupDetailPendapatan()">Tutup</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
 
   try {
-    // 1) Pekerjaan periode berjalan
-    const { data: inputRows, error: e1 } = await sb.from(COL.input)
-      .select('id, data')
-      .eq('data->>nama', nama)
-      .gte('data->>tanggalISO', dari)
-      .lte('data->>tanggalISO', sampai);
+    const [
+      { data: inputRows, error: e1 },
+      { data: tamRows, error: e2 },
+      { data: bayarRowsPeriode, error: e3 },
+      { data: pinjamanRowsAll, error: e4 },
+      { data: bayarRowsAll, error: e5 }
+    ] = await Promise.all([
+      sb.from(COL.input).select('id, data')
+        .eq('data->>nama', nama).gte('data->>tanggalISO', dari).lte('data->>tanggalISO', sampai),
+      sb.from(COL.tambahan).select('id, data')
+        .eq('data->>nama', nama).gte('data->>tanggalISO', dari).lte('data->>tanggalISO', sampai),
+      sb.from(COL.bayar).select('id, data')
+        .eq('data->>nama', nama).gte('data->>tanggalISO', dari).lte('data->>tanggalISO', sampai),
+      sb.from(COL.pinjaman).select('id, data')
+        .eq('data->>nama', nama),
+      sb.from(COL.bayar).select('id, data')
+        .eq('data->>nama', nama)
+    ]);
+
+    if (!overlay.isConnected) return;
     if (e1) throw e1;
     const pekerjaanItems = (inputRows||[]).map(r => r.data);
-
-    // 2) Tambahan (lembur/uang makan/bonus dkk) periode berjalan
-    const { data: tamRows, error: e2 } = await sb.from(COL.tambahan)
-      .select('id, data')
-      .eq('data->>nama', nama)
-      .gte('data->>tanggalISO', dari)
-      .lte('data->>tanggalISO', sampai);
     if (e2) throw e2;
-
-    // 3) Potongan (bayar cicilan pinjaman) periode berjalan, exclude luarGaji
-    const { data: bayarRowsPeriode, error: e3 } = await sb.from(COL.bayar)
-      .select('id, data')
-      .eq('data->>nama', nama)
-      .gte('data->>tanggalISO', dari)
-      .lte('data->>tanggalISO', sampai);
     if (e3) throw e3;
-
-    // 4) Pinjaman sisa: total pinjaman - total bayar, sepanjang waktu (bukan per periode)
-    const { data: pinjamanRowsAll, error: e4 } = await sb.from(COL.pinjaman)
-      .select('id, data')
-      .eq('data->>nama', nama);
     if (e4) throw e4;
-    const { data: bayarRowsAll, error: e5 } = await sb.from(COL.bayar)
-      .select('id, data')
-      .eq('data->>nama', nama);
     if (e5) throw e5;
 
     // ----- Olah data Pekerjaan -----
@@ -1374,9 +1376,6 @@ window.bukaDetailPendapatan = async () => {
     const bagian = (MASTER.pegawaiData[nama]||{}).bagian || '-';
     const initials = nama.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
 
-    const overlay = document.createElement('div');
-    overlay.id = 'detailPendapatanOverlay';
-    overlay.className = 'popup active';
     overlay.innerHTML = `
       <div class="popup-sheet dp-sheet">
         <div class="dp-head">
@@ -1432,8 +1431,14 @@ window.bukaDetailPendapatan = async () => {
         <button class="dp-close-btn" onclick="tutupDetailPendapatan()">Tutup</button>
       </div>
     `;
-    document.body.appendChild(overlay);
   } catch (e) {
+    if (!overlay.isConnected) return;
+    overlay.innerHTML = `
+      <div class="popup-sheet dp-sheet">
+        <div class="dp-empty">Gagal memuat detail pendapatan. Periksa koneksi, lalu coba lagi.</div>
+        <button class="dp-close-btn" onclick="tutupDetailPendapatan()">Tutup</button>
+      </div>
+    `;
     showToast('❌ Gagal memuat detail: ' + e.message);
   }
 };
