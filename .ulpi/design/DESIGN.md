@@ -33,11 +33,12 @@ Blue-tinted glass panels with a fine, bright upper edge and a faint inset reflec
 | text | `oklch(28.1% 0.070 260.8)` | `#14284B` | Text on light glass |
 | muted | `oklch(39.0% 0.081 254.3)` | `#24466F` | Secondary labels on light glass |
 | accent | `oklch(42.9% 0.139 258.5)` | `#164C9A` | Deep-blue glass panes and primary state |
+| revenue | `oklch(34.0% 0.105 13.0)` | `#7B1E35` | Gross-income summary pane only |
 | success | `oklch(69.6% 0.149 162.5)` | `#10B981` | Existing success status only |
 | warning | `oklch(76.9% 0.165 70.1)` | `#F59E0B` | Existing warning status only |
 | danger | `oklch(63.7% 0.208 25.3)` | `#EF4444` | Existing destructive/error status only |
 
-Contrast checks: `#14284B` on `#EAF3FF` = 13.08:1; `#24466F` on `#DCEBFA` = 7.94:1; white on `#164C9A` = 8.29:1; white on `#0D2B6E` = 13.23:1. Use light-glass/dark-text and dark-glass/white-text pairings; do not put text directly over the photo.
+Contrast checks: `#14284B` on `#EAF3FF` = 13.08:1; `#24466F` on `#DCEBFA` = 7.94:1; white on `#164C9A` = 8.29:1; white on `#7B1E35` = 10.10:1; white on `#0D2B6E` = 13.23:1. Use light-glass/dark-text and dark-glass/white-text pairings; do not put text directly over the photo.
 
 ## Type (locked)
 

@@ -38,7 +38,7 @@ User opens Riwayat Minggu Ini → views entry count, total and list → refreshe
 
 | Existing surface | Treatment |
 |------------------|-----------|
-| Header badge and stat panes | Continue the Payroll reference: translucent white-blue pane, fine light border, restrained inset edge. White text only on blue header panes. |
+| Header badge and stat panes | Continue the Payroll reference: translucent white-blue badge and blue Total Item pane, with a maroon-glass Total Pendapatan Kotor pane (`#7B1E35` at 92% opacity), fine light border, and restrained inset edge. White text only on dark panes. |
 | Employee and work form cards | Shared ice-blue glass fill with enough opacity for dark labels; a thin brighter top edge and quiet blue shadow. Remove the opaque gradient fills while retaining their current text hierarchy. |
 | Inputs, employee chip, quantity control | Slightly more opaque light-blue glass wells with a 1.5px visible edge and focus ring; give the employee-section chip a faint inset highlight and restrained blue shadow so it does not read flat. Preserve native select/input behavior and disabled state. |
 | Summary card and rows | Light glass pane; ready state uses a stronger blue tint and existing blue text; maintain divider visibility. |
