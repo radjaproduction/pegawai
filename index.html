@@ -655,6 +655,7 @@ async function sbDeleteRow(table, id){
 // ===== STATE =====
 let MASTER = { pegawai:[], pegawaiData:{}, hargaList:[], harga:{}, deviceLockNama:'', deviceLockId:'', inputLocked:false, inputLockNote:'' };
 let _initFlags = { master:false, harga:false };
+let _appInitialized = false;
 let _initTimeout;
 let _deviceLockSyncing = false;
 const INPUT_PENDING_KEY = 'radja_input_pending_queue';
@@ -860,39 +861,44 @@ function resetSelect(id, items, placeholder, disabled=false){
 }
 
 function _tryInit(){
-  if (Object.values(_initFlags).every(Boolean)) {
-    clearTimeout(_initTimeout);
-    hideLoading();
-    resetSelect('p_nama', MASTER.pegawai, '-- pilih nama kamu --');
-    if (MASTER.deviceLockNama && MASTER.pegawai.includes(MASTER.deviceLockNama)) {
-      // Perangkat ini sudah dikunci resmi ke satu nama (tersimpan di server).
-      // Buka kunci hanya bisa lewat app Payroll (admin) > Setting.
-      $('p_nama').value = MASTER.deviceLockNama;
-      onGantiNama();
-      _setNamaLockUI(true);
-    } else {
-      _setNamaLockUI(false);
-      const lastNama = localStorage.getItem(LS_KEY);
-      if (lastNama && MASTER.pegawai.includes(lastNama)) {
-        $('p_nama').value = lastNama;
-        // fromUser=false: cuma prefill tampilan, JANGAN ikut mengunci ulang.
-        // Kalau ini dipanggil dengan auto-lock aktif, begitu admin buka
-        // kunci di Setting, app pegawai akan langsung mengunci ulang ke
-        // nama lama sebelum pegawai sempat ganti (bug yang sudah terjadi).
-        onGantiNama(false);
-        // Retry HANYA kalau nama ini memang gagal tersimpan sebagai kunci
-        // resmi sebelumnya (mis. sempat offline) -- ditandai LOCK_PENDING_KEY.
-        // Sekadar "nama terakhir dipilih" tanpa penanda pending TIDAK di-retry,
-        // supaya kunci yang sudah sengaja dibuka admin tidak langsung terkunci lagi.
-        if (localStorage.getItem(LOCK_PENDING_KEY) === lastNama) {
-          _ensureDeviceLockSynced(lastNama);
-          _setNamaLockUI(true);
-        }
+  if (!Object.values(_initFlags).every(Boolean)) return;
+  clearTimeout(_initTimeout);
+  hideLoading();
+  if (_appInitialized) {
+    _refreshFormAfterMasterUpdate();
+    return;
+  }
+  _appInitialized = true;
+
+  resetSelect('p_nama', MASTER.pegawai, '-- pilih nama kamu --');
+  if (MASTER.deviceLockNama && MASTER.pegawai.includes(MASTER.deviceLockNama)) {
+    // Perangkat ini sudah dikunci resmi ke satu nama (tersimpan di server).
+    // Buka kunci hanya bisa lewat app Payroll (admin) > Setting.
+    $('p_nama').value = MASTER.deviceLockNama;
+    onGantiNama();
+    _setNamaLockUI(true);
+  } else {
+    _setNamaLockUI(false);
+    const lastNama = localStorage.getItem(LS_KEY);
+    if (lastNama && MASTER.pegawai.includes(lastNama)) {
+      $('p_nama').value = lastNama;
+      // fromUser=false: cuma prefill tampilan, JANGAN ikut mengunci ulang.
+      // Kalau ini dipanggil dengan auto-lock aktif, begitu admin buka
+      // kunci di Setting, app pegawai akan langsung mengunci ulang ke
+      // nama lama sebelum pegawai sempat ganti (bug yang sudah terjadi).
+      onGantiNama(false);
+      // Retry HANYA kalau nama ini memang gagal tersimpan sebagai kunci
+      // resmi sebelumnya (mis. sempat offline) -- ditandai LOCK_PENDING_KEY.
+      // Sekadar "nama terakhir dipilih" tanpa penanda pending TIDAK di-retry,
+      // supaya kunci yang sudah sengaja dibuka admin tidak langsung terkunci lagi.
+      if (localStorage.getItem(LOCK_PENDING_KEY) === lastNama) {
+        _ensureDeviceLockSynced(lastNama);
+        _setNamaLockUI(true);
       }
     }
-    _retryPendingInputs();
-    _showUpdateNotifIfNeeded();
   }
+  _retryPendingInputs();
+  _showUpdateNotifIfNeeded();
 }
 
 // ID unik untuk update tampilan ini. Kalau nanti ada update tampilan baru,
@@ -1018,6 +1024,66 @@ window.onGantiBrand = () => {
   $('p_hargaHint').innerHTML = 'Harga satuan: <b>Rp 0</b>';
   _updateBtnSimpan();
 };
+
+function _refreshFormAfterMasterUpdate(){
+  const previous = {
+    nama: $('p_nama').value,
+    brand: $('p_brand').value,
+    jenis: $('p_jenis').value,
+    qty: $('p_qty').value
+  };
+  const deviceNama = MASTER.deviceLockNama && MASTER.pegawai.includes(MASTER.deviceLockNama)
+    ? MASTER.deviceLockNama
+    : '';
+  const nama = deviceNama || (MASTER.pegawai.includes(previous.nama) ? previous.nama : '');
+  const sameEmployee = nama === previous.nama;
+
+  resetSelect('p_nama', MASTER.pegawai, '-- pilih nama kamu --');
+  $('p_nama').value = nama;
+  const lockPending = localStorage.getItem(LOCK_PENDING_KEY) === nama;
+  _setNamaLockUI(!!nama && (nama === deviceNama || lockPending), nama);
+  onGantiNama(false);
+
+  if (!sameEmployee) {
+    if (previous.jenis) showToast('⚠ Data pegawai berubah. Pilih kembali pekerjaan yang belum disimpan.');
+    return;
+  }
+
+  const brandOptions = [...$('p_brand').options].map(option => option.value);
+  if (!previous.brand || !brandOptions.includes(previous.brand)) {
+    if (previous.jenis) showToast('⚠ Daftar brand berubah. Pilih kembali pekerjaan yang belum disimpan.');
+    return;
+  }
+
+  $('p_brand').value = previous.brand;
+  onGantiBrand();
+  const jenisOptions = [...$('p_jenis').options].map(option => option.value);
+  if (!previous.jenis || !jenisOptions.includes(previous.jenis)) {
+    if (previous.jenis) showToast('⚠ Daftar pekerjaan berubah. Pilih kembali pekerjaan yang belum disimpan.');
+    return;
+  }
+
+  $('p_jenis').value = previous.jenis;
+  const qty = parseInt(previous.qty, 10) || 0;
+  $('p_qty').value = qty > 0 ? String(qty) : '';
+  $('p_qtyDisplay').value = qty > 0 ? String(qty) : '';
+  $('p_qtyDisplay').classList.toggle('f-placeholder', !(qty > 0));
+
+  const harga = hargaFor(previous.brand, (MASTER.pegawaiData[nama] || {}).bagian, previous.jenis);
+  const hint = $('p_hargaHint');
+  if (harga > 0) {
+    $('p_qtyTrigger').style.opacity = '1';
+    $('p_qtyTrigger').style.pointerEvents = 'auto';
+    hint.className = 'harga-hint show';
+    hint.innerHTML = `Harga satuan: <b>Rp ${fmt(harga)}</b>`;
+  } else {
+    $('p_qtyTrigger').style.opacity = '0.4';
+    $('p_qtyTrigger').style.pointerEvents = 'none';
+    hint.className = 'harga-hint show warn';
+    hint.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Harga belum diset admin untuk pekerjaan ini';
+  }
+  _updateBtnSimpan();
+}
 
 window.onGantiJenis = () => {
   const brand = $('p_brand').value;
